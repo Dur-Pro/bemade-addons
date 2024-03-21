@@ -76,6 +76,12 @@ class Task(models.Model):
 
     work_order_number = fields.Char(readonly=True)
 
+    propagate_assignment = fields.Boolean(
+        string='Propagate Assignment',
+        help='Propagate assignment of this task to all subtasks.',
+        default=False,
+    )
+
     @api.model_create_multi
     def create(self, vals):
         res = super().create(vals)
@@ -88,9 +94,22 @@ class Task(models.Model):
                     pattern = re.compile(r"\d+$")
                     matches = map(lambda n: pattern.search(n), prev_seqs)
                     seq += max(map(lambda n: int(n.group(1)) if n else 0), matches)
-                rec.work_order_number = rec.sale_order_id.name.replace('SO', 'WO', 1) \
+                rec.work_order_number = rec.sale_order_id.name.replace('SO', 'SVR', 1) \
                                         + f"-{seq}"
         return res
+
+    def write(self, vals):
+        super().write(vals)
+        if not self:  # End recursion on empty RecordSet
+            return
+        if 'propagate_assignment' in vals:
+            # When a user sets propagate assignment, it should propagate that setting all the way down the chain
+            self.child_ids.write({'propagate_assignment': vals['propagate_assignment']})
+        if 'user_ids' in vals:
+            to_propagate = self.filtered(lambda task: task.propagate_assignment)
+            # Here we use child_ids instead of _get_all_subtasks() so as to allow for setting propagate_assignment
+            # to false on a child task.
+            to_propagate.child_ids.write({'user_ids': vals['user_ids']})
 
     @api.depends('sale_order_id')
     def _compute_relevant_order_lines(self):
@@ -233,6 +252,11 @@ class Task(models.Model):
                 values['stage_id'] = closed_stage.id
 
             task.write(values)
+
+    def _get_full_hierarchy(self):
+        if self.child_ids:
+            return self | self.child_ids._get_full_hierarchy()
+        return self
 
     def synchronize_name_fsm(self):
         """ Applies naming to the entire task tree for tasks that are part of this
