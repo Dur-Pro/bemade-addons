@@ -18,6 +18,22 @@
         </field>
     </record>
 
+    <record model="ir.ui.view" id="kanban_property">
+        <field name="name">res.partner.kanban.property</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <kanban class="o_res_partner_kanban">
+                <field name="display_name"/>
+                <field name="city"/>
+                <field name="zip"/>
+                <field name="state_id"/>
+                <field name="country_id"/>
+                <field name="category_id" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                <field name="active" invisible="1"/>
+            </kanban>
+        </field>
+    </record>
+
     <menuitem
         name="Property"
         id="menu_property"
@@ -29,10 +45,10 @@
     <record id="action_properties" model="ir.actions.act_window">
         <field name="name">Properties</field>
         <field name="res_model">res.partner</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">kanban,tree,form</field>
         <field name="view_id" ref="tree_property"/>
         <field name="domain">[('is_property','=',True)]</field>
-        <field name="context">{'default_is_property': True}</field>
+        <field name="context">{'default_is_property': True, 'default_is_company': True}</field>
     </record>
 
     <menuitem

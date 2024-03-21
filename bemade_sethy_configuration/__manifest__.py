@@ -27,6 +27,7 @@
     'data': [
         # Reference to XML, CSV, and other data files
         'data/membership_category_data.xml',
+        'data/ir_cron_data.xml',
         'data/product_template_data.xml',
         'data/partner_category_data.xml',
         'data/partner_relation_type_data.xml',
@@ -36,7 +37,7 @@
         'views/property_view.xml',
         'views/res_partner_views.xml',
         'security/ir.model.access.csv',
-
+        'wizard/transfer_property_wizard_views.xml'
     ],
     'demo': [
         # Reference to demo data files
