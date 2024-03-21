@@ -46,7 +46,7 @@
         <field name="name">Properties</field>
         <field name="res_model">res.partner</field>
         <field name="view_mode">kanban,tree,form</field>
-        <field name="view_id" ref="tree_property"/>
+        <field name="view_id" ref="kanban_property"/>
         <field name="domain">[('is_property','=',True)]</field>
         <field name="context">{'default_is_property': True, 'default_is_company': True}</field>
     </record>
