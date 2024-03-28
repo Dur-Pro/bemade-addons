@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="res_config_settings_view_form" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.bemade.fsm</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="industry_fsm.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <setting name="module_industry_fsm_report" position="after">
+                <setting
+                        name="module_bemade_fsm_separate_time_on_work_orders"
+                        help="Separate blocks for materials and time on work order reports.">
+                    <field name="module_bemade_fsm_separate_time_on_work_orders"/>
+                </setting>
+                <setting
+                        name="module_bemade_fsm_create_default_fsm_visit"
+                        help="Create a default FSM visit if a service SO doesn't already contain one at confirmation.">
+                    <field name="module_bemade_fsm_create_default_fsm_visit"/>
+                </setting>
+            </setting>
+        </field>
+    </record>
+</odoo>

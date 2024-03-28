@@ -4,6 +4,12 @@ from odoo import Command
 
 @tagged("-at_install", "post_install")
 class BemadeFSMBaseTest(TransactionCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.env.user.groups_id += cls.env.ref("account.group_delivery_invoice_address")
+        cls.env.company.create_default_fsm_visit = True
+
 
     @classmethod
     def _generate_project_manager_user(cls, name, login):
@@ -37,7 +43,11 @@ class BemadeFSMBaseTest(TransactionCase):
         user_group_fsm_user = cls.env.ref('industry_fsm.group_fsm_user')
         user_group_sales_user = cls.env.ref('sales_team.group_sale_salesman')
         user_group_sales_manager = cls.env.ref('sales_team.group_sale_manager')
-        user_product_customer = cls.env.ref('customer_product_code.group_product_customer_code_user')
+        # TODO: Split this out into a bemade_fsm_customer_product_code module if it's wanted
+        user_product_customer = cls.env.ref(
+            'customer_product_code.group_product_customer_code_user',
+            raise_if_not_found=False
+        )
 
         group_ids = [user_group_employee.id,
                      user_group_project_user.id,

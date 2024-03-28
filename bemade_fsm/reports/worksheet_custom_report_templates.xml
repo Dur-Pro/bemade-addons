@@ -3,8 +3,9 @@
     <data>
         <template id="workorder_page_materials_table">
             <t t-set="order_lines"
-               t-value="doc.relevant_order_lines.filtered(lambda l:
-                    l.product_id.type != 'service' and not l.is_downpayment and not l.visit_id)"/>
+               t-value="doc.relevant_order_lines"/>
+            <!--.filtered(lambda l:
+                    l.product_id.type != 'service' and not l.is_downpayment and not l.visit_id)"/>-->
             <t t-if="order_lines">
                 <t t-set="visit_lines" t-value="order_lines.mapped('visit_id')"/>
                 <t t-set="section_lines"
@@ -25,7 +26,7 @@
                             <t t-foreach="order_lines" t-as="line">
                                 <t t-set="is_task" t-value="line == doc.sale_line_id"/>
                                 <tr t-att-class="'bg-200 font-weight-bold o_line_section' if line.display_type == 'line_section' else 'font-italic o_line_note' if line.display_type == 'line_note' else ''">
-                                    <t t-if="not line.display_type">
+                                    <t t-if="not line.display_type and not line.is_downpayment">
                                         <td><span t-field="line.name"/></td>
                                         <td class="text-right">
                                             <span t-field="line.product_uom_qty"/>
@@ -284,14 +285,14 @@
                     </t>
                 </div>
                 <div t-attf-class="{{('col-6' if report_type == 'pdf' else 'col-md-6 col-12') + ' mb-3'}}"
-                     t-if="doc.planned_date_begin or doc.planned_date_end">
+                     t-if="doc.planned_date_begin or doc.date_deadline">
                     <div t-if="doc.planned_date_begin"><h6>Planned start: </h6></div>
                     <div class="mb-3">
                         <div t-out="doc.planned_date_begin.strftime('%Y-%m-%d %H:%M')"/>
                     </div>
-                    <div t-if="doc.planned_date_end"><h6>Planned end: </h6></div>
+                    <div t-if="doc.date_deadline"><h6>Planned end: </h6></div>
                     <div class="mb-3">
-                        <div t-out="doc.planned_date_end.strftime('%Y-%m-%d %H:%M')"/>
+                        <div t-out="doc.date_deadline.strftime('%Y-%m-%d %H:%M')"/>
                     </div>
                 </div>
             </div>
@@ -444,7 +445,12 @@
             <div class="page">
                 <t t-call="bemade_fsm.workorder_page_info_block"/>
                 <t t-call="bemade_fsm.workorder_page_timesheet_entries"/>
-                <t t-call="bemade_fsm.workorder_page_materials_table"/>
+                <t t-if="doc.company_id.split_time_from_materials_on_service_work_orders">
+                    <t t-call="bemade_fsm.workorder_page_materials_table"/>
+                </t>
+                <t t-else="">
+                    <t t-call="bemade_fsm.workorder_page_sale_order_table_with_pricing_and_labour"/>
+                </t>
                 <t t-call="bemade_fsm.workorder_equipment_summary"/>
                 <t t-call="bemade_fsm.workorder_page_signature_block"/>
                 <t t-call="bemade_fsm.workorder_page_tasks_table"/>
