@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="property_transfer_wizard_form_view" model="ir.ui.view">
+        <field name="name">property.transfer.wizard.form</field>
+        <field name="model">transfer.property.wizard</field>
+        <field name="type">form</field>
+        <field name="arch" type="xml">
+            <form string="Property Wizard">
+                <group>
+                    <field name="property_id"/>
+                    <field name="transfer_date"/>
+                </group>
+                <group>
+                    <field name="new_owner_id"/>
+                </group>
+                <footer>
+                    <button name="action_transfer_property" string="Transfer Property" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="oe_link" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

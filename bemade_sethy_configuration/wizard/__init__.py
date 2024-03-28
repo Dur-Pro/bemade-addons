@@ -1,1 +1,1 @@
-from . import property_wizard
+from . import transfer_property_wizard
