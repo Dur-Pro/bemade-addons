@@ -89,7 +89,7 @@ class FSMVisitTest(BemadeFSMBaseTest):
         so.action_confirm()
 
         visit_task = visit.task_id
-        self.assertEqual(visit_task.planned_hours, 8.0)
+        self.assertEqual(visit_task.allocated_hours, 8.0)
 
     def test_adding_visit_creates_one_sale_order_line(self):
         partner = self._generate_partner()

@@ -17,7 +17,7 @@
     # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Uncategorized',
-    'version': '0.1',
+    'version': '17.0.1.0.0',
 
     # any module necessary for this one to work correctly
     'depends': [
@@ -26,9 +26,9 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         'views/sale_order_views.xml',
-        'wizard/sale_order_alternative_views.xml',
+        'wizard/sale_order_duplication_wizard_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

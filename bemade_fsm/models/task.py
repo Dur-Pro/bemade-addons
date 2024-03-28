@@ -2,6 +2,7 @@ from odoo import fields, models, api, Command, _
 from odoo.exceptions import ValidationError, UserError
 from odoo.osv import expression
 from collections import defaultdict, namedtuple
+from odoo.addons.project.models.project_task import CLOSED_STATES
 import re
 
 
@@ -82,6 +83,15 @@ class Task(models.Model):
         default=False,
     )
 
+    is_closed = fields.Boolean(
+        compute="_compute_is_closed",
+    )
+
+    def _compute_is_closed(self):
+        for rec in self:
+            rec.is_closed = rec.state in CLOSED_STATES
+
+
     @api.model_create_multi
     def create(self, vals):
         res = super().create(vals)
@@ -99,9 +109,9 @@ class Task(models.Model):
         return res
 
     def write(self, vals):
-        super().write(vals)
+        res = super().write(vals)
         if not self:  # End recursion on empty RecordSet
-            return
+            return res
         if 'propagate_assignment' in vals:
             # When a user sets propagate assignment, it should propagate that setting all the way down the chain
             self.child_ids.write({'propagate_assignment': vals['propagate_assignment']})
@@ -110,6 +120,7 @@ class Task(models.Model):
             # Here we use child_ids instead of _get_all_subtasks() so as to allow for setting propagate_assignment
             # to false on a child task.
             to_propagate.child_ids.write({'user_ids': vals['user_ids']})
+        return res
 
     @api.depends('sale_order_id')
     def _compute_relevant_order_lines(self):

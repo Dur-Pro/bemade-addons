@@ -90,7 +90,7 @@ class TaskTemplate(models.Model):
             'parent_id': parent_id,
             'user_ids': self.assignees.ids,
             'tag_ids': self.tags.ids,
-            'planned_hours': self.planned_hours,
+            'allocated_hours': self.planned_hours,
             'sequence': self.sequence,
             'equipment_ids': [Command.set(self.equipment_ids.ids)] if self.equipment_ids else False,
             'partner_id': project.partner_id and project.partner_id.id,

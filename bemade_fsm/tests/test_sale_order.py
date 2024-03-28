@@ -19,7 +19,7 @@ class TestSalesOrder(BemadeFSMBaseTest):
         task = sol.task_id
         self.assertTrue(task)
         self.assertTrue(task_template.name in task.name)
-        self.assertTrue(task_template.planned_hours == task.planned_hours)
+        self.assertTrue(task_template.planned_hours == task.allocated_hours)
 
     def test_task_template_tree_order_confirmation(self):
         partner = self._generate_partner()

@@ -29,14 +29,14 @@
     'author': 'Bemade Inc.',
     'website': 'https://www.bemade.org',
     'license': 'OPL-1',
-    'depends': [
-        'sale',
-        'account',
-        'bemade_partner_root_ancestor',
-    ],
+    'depends': ['sale',
+                'account',
+                'bemade_partner_root_ancestor',
+                ],
     'data': [
         'views/account_move_views.xml',
-        'views/res_partner_views.xml'
+        'views/res_partner_views.xml',
+        'views/sale_order_views.xml',
     ],
     'demo': [],
     'installable': True,

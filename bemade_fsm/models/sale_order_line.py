@@ -115,7 +115,7 @@ class SaleOrderLine(models.Model):
             vals['parent_id'] = parent and parent.id
             vals['user_ids'] = template.assignees.ids
             vals['tag_ids'] = template.tags.ids
-            vals['planned_hours'] = template.planned_hours
+            vals['allocated_hours'] = template.planned_hours
             vals['sequence'] = template.sequence
             if template.equipment_ids:
                 vals['equipment_ids'] = template.equipment_ids.ids
@@ -134,7 +134,7 @@ class SaleOrderLine(models.Model):
             task.message_post(body=task_msg)
         if not task.equipment_ids and self.equipment_ids:
             task.equipment_ids = self.equipment_ids.ids
-        task.planned_hours = self.task_duration
+        task.allocated_hours = self.task_duration
         return task
 
     def _timesheet_service_generation(self):
@@ -150,7 +150,7 @@ class SaleOrderLine(models.Model):
             project_id = task_ids[0].project_id
             line.visit_id.task_id = line._generate_task_for_visit_line(project_id)
             task_ids.write({'parent_id': line.visit_id.task_id.id})
-        self.mapped('task_id').synchronize_name_fsm()
+        self.task_id.filtered("is_fsm").synchronize_name_fsm()
 
     def _generate_task_for_visit_line(self, project):
         self.ensure_one()
@@ -164,7 +164,7 @@ class SaleOrderLine(models.Model):
             'partner_id': self.order_id.partner_shipping_id.id,
             'visit_id': self.visit_id.id,
             'date_deadline': self.visit_id.approx_date,
-            'planned_hours': self.task_duration,
+            'allocated_hours': self.task_duration,
             'user_ids': False,  # Force to empty or it uses the current user
         })
         return task

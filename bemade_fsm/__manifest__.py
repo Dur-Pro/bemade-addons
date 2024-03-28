@@ -55,6 +55,7 @@
         'reports/worksheet_custom_report_templates.xml',
         'reports/worksheet_custom_reports.xml',
         'wizard/new_task_from_template.xml',
+        'wizard/res_config_settings.xml',
     ],
     'assets': {
         'web.report_assets_common': [
