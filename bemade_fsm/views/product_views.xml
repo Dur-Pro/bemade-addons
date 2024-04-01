@@ -12,9 +12,6 @@
                             invisible="service_tracking not in ('task_global_project', 'task_in_project')"
                             domain="[('parent', '=', False)]"/>
                 </xpath>
-                <xpath expr="//field[@name='planning_enabled']" position="after">
-                    <field name="is_field_service"/>
-                </xpath>
             </field>
         </record>
 
