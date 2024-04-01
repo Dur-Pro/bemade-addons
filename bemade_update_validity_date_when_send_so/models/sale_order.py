@@ -25,4 +25,4 @@ class SaleOrder(models.Model):
         # Updates the validity date to 30 days from now
         self.validity_date = datetime.now() + timedelta(days=30)
         # Calls the original 'action_quotation_send' method from 'sale.order'
-        super(SaleOrder, self).action_quotation_send()
+        return super(SaleOrder, self).action_quotation_send()
