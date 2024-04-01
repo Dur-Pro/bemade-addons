@@ -16,7 +16,10 @@
     'category': 'Technical',
     'version': '0.1',
     'license': 'AGPL-3',
-    'depends': ['odoo_password_manager'],
+    'depends': [
+        'odoo_password_manager',
+        'hr',
+    ],
 
     'data': [
     ],
