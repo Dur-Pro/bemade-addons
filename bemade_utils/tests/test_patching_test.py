@@ -1,7 +1,8 @@
-from odoo.tests import TransactionCase
-from addons.bemade_utils import patch_test
+from odoo.tests import TransactionCase, tagged
+from odoo.addons.bemade_utils import patch_test
 
 
+@tagged("-at_install", "post_install")
 class TestA(TransactionCase):
     @classmethod
     def setUpClass(cls):
