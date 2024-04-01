@@ -161,11 +161,14 @@ class SaleOrderLine(models.Model):
                 # Can't group up the tasks if they're part of different projects
                 return
             project_id = task_ids[0].project_id
-            line.visit_id.task_id = line._generate_task_for_visit_line(project_id, index + 1)
+            line.visit_id.task_id = line._generate_task_for_visit_line(
+                project_id, index + 1,
+                sum(task_ids.mapped("allocated_hours"))
+            )
             task_ids.write({'parent_id': line.visit_id.task_id.id})
         (self.mapped('task_id') | self.visit_ids.task_id).filtered("is_fsm").synchronize_name_fsm()
 
-    def _generate_task_for_visit_line(self, project, visit_no: int):
+    def _generate_task_for_visit_line(self, project, visit_no: int, allocated_hours: int):
         self.ensure_one()
 
         allocated_hours = sum(self.get_section_line_ids().task_id.mapped('allocated_hours'))
@@ -176,8 +179,8 @@ class SaleOrderLine(models.Model):
             'sale_order_id': self.order_id.id,
             'partner_id': self.order_id.partner_shipping_id.id,
             'visit_id': self.visit_id.id,
-            'date_deadline': self.visit_id.approx_date,
             'allocated_hours': allocated_hours,
+            'date_deadline': self.visit_id.approx_date,
             'user_ids': False,  # Force to empty or it uses the current user
         })
         return task

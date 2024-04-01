@@ -43,6 +43,10 @@ class FSMVisit(models.Model):
         inverse_name="visit_id"
     )
 
+    visit_no = fields.Integer(
+        compute="_compute_visit_no",
+    )
+
     @api.depends('task_ids')
     def _compute_task_id(self):
         for rec in self:
@@ -68,3 +72,19 @@ class FSMVisit(models.Model):
                 'name': vals_list[i].get('label', False),
             })
         return recs
+
+    @api.depends(
+        'so_section_id',
+        'sale_order_id',
+        'sale_order_id.visit_ids',
+        'sale_order_id.visit_ids.so_section_id',
+        'sale_order_id.visit_ids.so_section_id.sequence'
+    )
+    def _compute_visit_no(self):
+        for rec in self:
+            ordered_visit_lines = self.sale_order_id.visit_ids.so_section_id.sorted("sequence")
+            # Just a straight O(n) search here since n will always be relatively small
+            for index, line in enumerate(ordered_visit_lines):
+                if line == rec.so_section_id:
+                    rec.visit_no = index + 1
+                    return

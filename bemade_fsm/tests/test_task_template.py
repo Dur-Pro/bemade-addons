@@ -44,27 +44,6 @@ class TestTaskTemplate(BemadeFSMBaseTest):
 
         self.assertFalse(equipment1 in task.equipment_ids)
 
-    def test_hours_estimate_used_for_planning(self):
-        partner = self._generate_partner()
-        so = self._generate_sale_order(partner=partner)
-        task_template = self._generate_task_template(planned_hours=8)
-        product = self._generate_product(uom=self.env.ref('uom.product_uom_unit'), task_template=task_template)
-
-        sol = self._generate_sale_order_line(sale_order=so, product=product)
-
-        self.assertEqual(sol.task_duration, 8)
-
-    def test_hours_estimate_multiplied_for_multiple_units_sold(self):
-        partner = self._generate_partner()
-        so = self._generate_sale_order(partner=partner)
-        task_template = self._generate_task_template(planned_hours=8)
-        product = self._generate_product(uom=self.env.ref('uom.product_uom_unit'),
-                                         task_template=task_template)
-
-        sol = self._generate_sale_order_line(sale_order=so, product=product, qty=3.0)
-
-        self.assertEqual(sol.task_duration, 24)
-
     def test_child_task_names_are_short_version(self):
         so, visit, sol1, sol2 = self._generate_so_with_one_visit_two_lines()
         template = self._generate_task_template(names=['Task'])

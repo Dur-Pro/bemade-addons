@@ -4,7 +4,6 @@ from odoo import Command
 
 @tagged("-at_install", "post_install")
 class BemadeFSMBaseTest(TransactionCase):
-
     @classmethod
     def _generate_project_manager_user(cls, name, login):
         group_ids = cls.__get_user_groups()
@@ -110,6 +109,7 @@ class BemadeFSMBaseTest(TransactionCase):
             'name': name,
             'type': product_type,
             'service_tracking': service_tracking,
+            'service_type': 'timesheet',
             'project_id': service_tracking in ('task_global_project', 'project_only') and project.id or False,
             'project_template_id': service_tracking == 'task_in_project' and project.id or False,
             'task_template_id': task_template and task_template.id or False,
@@ -124,7 +124,6 @@ class BemadeFSMBaseTest(TransactionCase):
             'name': name,
             'allow_material': True,
             'allow_timesheets': True,
-            'allow_subtasks': True,
             'allow_quotations': True,
             'allow_worksheets': True,
             'is_fsm': True,

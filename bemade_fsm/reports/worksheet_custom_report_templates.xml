@@ -444,7 +444,7 @@
             <div class="page">
                 <t t-call="bemade_fsm.workorder_page_info_block"/>
                 <t t-call="bemade_fsm.workorder_page_timesheet_entries"/>
-                <t t-if="doc.company_id.split_time_from_materials_on_service_work_orders">
+                <t t-if="split_time_materials">
                     <t t-call="bemade_fsm.workorder_page_materials_table"/>
                 </t>
                 <t t-else="">

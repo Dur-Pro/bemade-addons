@@ -61,6 +61,7 @@ class SaleOrderFSMContactsCase(BemadeFSMBaseTest):
         self.assertEqual(so.work_order_contacts, shipping_location.work_order_contacts)
 
     def test_onchange_shipping_address(self):
+        self.env.user.groups_id += self.env.ref('account.group_delivery_invoice_address')
         parent_co = self._generate_partner('Parent Co')
         shipping_location = self._generate_partner('Shipping Location', 'company', parent_co, 'delivery')
         wo_contact_1 = self._generate_partner('WO Contact 1', 'person', shipping_location)

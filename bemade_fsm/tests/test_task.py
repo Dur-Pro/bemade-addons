@@ -33,7 +33,6 @@ class TaskTest(BemadeFSMBaseTest):
         task = self.task
         task.write({
             'user_ids': [Command.set([self.user.id])],
-            'propagate_assignment': True,
         })
 
         self.assertFalse(any([t.user_ids for t in task.child_ids.child_ids]))

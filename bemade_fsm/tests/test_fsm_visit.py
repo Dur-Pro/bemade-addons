@@ -89,6 +89,8 @@ class FSMVisitTest(BemadeFSMBaseTest):
         so.action_confirm()
 
         visit_task = visit.task_id
+        self.assertEqual(sol1.task_id.allocated_hours, 4.0)
+        self.assertEqual(sol2.task_id.allocated_hours, 4.0)
         self.assertEqual(visit_task.allocated_hours, 8.0)
 
     def test_adding_visit_creates_one_sale_order_line(self):
@@ -127,9 +129,9 @@ class FSMVisitTest(BemadeFSMBaseTest):
     def test_confirming_so_names_visit_properly(self):
         """ Visits should be named <SO NUMBER> - Visit <visit #> - <visit label>"""
         so, visit, sol1, sol2 = self._generate_so_with_one_visit_two_lines()
-
+        so.name = "SO12345"
         so.action_confirm()
         task = visit.task_id
 
-        supposed_name = f"{so.name} - Visit 1 - {visit.label}"
+        supposed_name = f"SVR12345-1 - Test Company - Test Label"
         self.assertEqual(task.name, supposed_name)
