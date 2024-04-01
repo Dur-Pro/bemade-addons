@@ -52,11 +52,6 @@ class SaleOrderLine(models.Model):
         store=True
     )
 
-    task_duration = fields.Float(
-        string="Estimated Duration",
-        compute="_compute_task_duration"
-    )
-
     is_fsm = fields.Boolean(
         string='Is FSM',
         compute='_compute_is_fsm',
@@ -153,7 +148,6 @@ class SaleOrderLine(models.Model):
             task.message_post(body=task_msg)
         if not task.equipment_ids and self.equipment_ids:
             task.equipment_ids = self.equipment_ids.ids
-        task.allocated_hours = self.task_duration
         return task
 
     def _timesheet_service_generation(self):
@@ -174,6 +168,7 @@ class SaleOrderLine(models.Model):
     def _generate_task_for_visit_line(self, project, visit_no: int):
         self.ensure_one()
 
+        allocated_hours = sum(self.get_section_line_ids().task_id.mapped('allocated_hours'))
         task = self.env['project.task'].create({
             'name': f"{self.order_id.name} - " + _("Visit") + f" {visit_no} - {self.name}",
             'project_id': project.id,
@@ -182,7 +177,7 @@ class SaleOrderLine(models.Model):
             'partner_id': self.order_id.partner_shipping_id.id,
             'visit_id': self.visit_id.id,
             'date_deadline': self.visit_id.approx_date,
-            'allocated_hours': self.task_duration,
+            'allocated_hours': allocated_hours,
             'user_ids': False,  # Force to empty or it uses the current user
         })
         return task
@@ -209,6 +204,7 @@ class SaleOrderLine(models.Model):
                 lambda l: l.qty_to_invoice == 0)
 
     def get_section_line_ids(self):
+        """ Return a recordset of sale.order.line records that are in this sale order section. """
         self.ensure_one()
         assert self.display_type == 'line_section', "Cannot get section lines for a non-section."
         found = False
@@ -251,45 +247,6 @@ class SaleOrderLine(models.Model):
                 if not val:
                     return val
             return True
-
-    @api.depends('task_duration', 'product_id', 'product_id.planning_enabled', 'state')
-    def _compute_planning_hours_to_plan(self):
-        # Override the method from sale_planning to use time estimates from the task
-        # template if appropriate. Also compute the value for visit lines.
-        planning_lines = self.filtered_domain([
-            ('product_id.planning_enabled', '=', True),
-            ('state', 'not in', ['draft', 'sent'])
-        ])
-        for line in planning_lines:
-            line.planning_hours_to_plan = line.task_duration
-        for line in self - planning_lines:
-            line.planning_hours_to_plan = 0.0
-
-    @api.depends('product_id', 'visit_id')
-    def _compute_task_duration(self):
-        uom_hour = self.env.ref('uom.product_uom_hour')
-        uom_unit = self.env.ref('uom.product_uom_unit')
-        templated_lines = self.filtered(lambda l: l.product_id.task_template_id
-                                                  and l.product_id.task_template_id.planned_hours)
-        visit_lines = self.filtered(lambda l: l.visit_id)
-        regular_lines = self - templated_lines - visit_lines
-        for line in regular_lines:
-            if line.product_uom == uom_hour or line.product_uom == uom_unit:
-                line.task_duration = line.product_uom_qty
-            else:
-                line.task_duration = float_round(
-                    line.product_uom._compute_quantity(line.product_uom_qty, uom_hour,
-                                                       raise_if_failure=False),
-                    precision_digits=2)
-        for line in templated_lines:
-            line.task_duration = line.product_id.task_template_id.planned_hours
-            if line.product_uom_category_id == self.env.ref(
-                    'uom.product_uom_unit').category_id:
-                line.task_duration *= line.product_uom_qty
-        visit_lines = self.filtered(lambda l: l.visit_id)
-        for line in visit_lines:
-            line.task_duration = sum(line.get_section_line_ids().
-                                     mapped('task_duration'))
 
     @api.depends('product_id.detailed_type', 'product_id.service_tracking')
     def _compute_is_fsm(self):
