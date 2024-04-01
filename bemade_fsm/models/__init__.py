@@ -9,3 +9,4 @@ from . import task
 from . import res_partner
 from . import fsm_visit
 from . import res_company
+from . import project

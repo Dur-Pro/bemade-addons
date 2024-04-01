@@ -50,11 +50,17 @@ class SaleOrder(models.Model):
         readonly=False
     )
 
+    is_fsm = fields.Boolean(
+        compute='_compute_is_fsm',
+        string='Is FSM',
+        store=True,
+    )
+
     @api.depends('order_line.task_id')
     def get_relevant_order_lines(self, task_id):
         self.ensure_one()
         linked_lines = self.order_line.filtered(lambda l: l.task_id == task_id
-                                                or l == task_id.visit_id.so_section_id)
+                                                          or l == task_id.visit_id.so_section_id)
         visit_lines = linked_lines.filtered(lambda l: l.visit_id)
         for line in visit_lines:
             linked_lines |= line.get_section_line_ids()
@@ -102,3 +108,41 @@ class SaleOrder(models.Model):
         rec.visit_ids = [Command.set(rec.order_line.visit_ids.ids)]
         return rec
 
+    def _create_default_visit(self):
+        """ Called when an order is confirmed with lines that will create an FSM task, in order to make sure there is
+        a visit line grouping all the service being done."""
+        self.ensure_one()
+        visit = self.env['bemade_fsm.visit'].create({
+            'label': _('Service Visit'),
+            'sale_order_id': self.id,
+        })
+        # Make sure it goes to the top of the list
+        visit.so_section_id.sequence = 0
+
+    def _create_or_organize_visits_if_needed(self):
+        """ Adds a visit line to the top of the order if there are not already visit lines for an order with lines that
+        will create an FSM task."""
+        for order in self.filtered("company_id.create_default_fsm_visit"):
+            if not order.visit_ids and order.is_fsm:
+                order._create_default_visit()
+            if order.is_fsm:
+                # Make sure that all the lines producing FSM tasks are under a visit
+                visit_line_ids = order.mapped('visit_ids').mapped('so_section_id').mapped('section_line_ids')
+                if any([
+                    True for line in
+                    order.order_line.filtered(lambda line: not line.display_type)
+                    if line not in visit_line_ids
+                ]):
+                    # If not, promote the first visit to the top of the order items list
+                    for line in order.order_line:
+                        line.sequence += 1
+                    order.mapped('visit_ids').mapped('so_section_id')[0].sequence = 0
+
+    @api.depends('order_line.is_fsm')
+    def _compute_is_fsm(self):
+        for rec in self:
+            rec.is_fsm = any([line.is_fsm for line in rec.order_line])
+
+    def action_confirm(self):
+        self._create_or_organize_visits_if_needed()
+        return super().action_confirm()

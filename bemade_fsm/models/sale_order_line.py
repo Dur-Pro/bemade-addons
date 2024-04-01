@@ -14,7 +14,8 @@ class SaleOrderLine(models.Model):
     visit_ids = fields.One2many(
         comodel_name="bemade_fsm.visit",
         inverse_name="so_section_id",
-        string="Visits"
+        string="Visits",
+        copy=True,
     )
 
     visit_id = fields.Many2one(
@@ -22,7 +23,7 @@ class SaleOrderLine(models.Model):
         compute="_compute_visit_id",
         string="Visit",
         ondelete='cascade',
-        store=True
+        store=True,
     )
 
     is_fully_delivered = fields.Boolean(
@@ -56,6 +57,17 @@ class SaleOrderLine(models.Model):
         compute="_compute_task_duration"
     )
 
+    is_fsm = fields.Boolean(
+        string='Is FSM',
+        compute='_compute_is_fsm',
+        store=True,
+    )
+
+    section_line_ids = fields.One2many(
+        comodel_name='sale.order.line',
+        compute='_compute_section_line_ids',
+    )
+
     @api.depends('visit_ids')
     def _compute_visit_id(self):
         for rec in self:
@@ -73,6 +85,13 @@ class SaleOrderLine(models.Model):
             if rec.order_id.default_equipment_ids and not rec.equipment_ids:
                 rec.equipment_ids = rec.order_id.default_equipment_ids
         return recs
+
+    def copy_data(self, default=None):
+        if default is None:
+            default = {}
+        if 'visit_ids' not in default:
+            default['visit_ids'] = [(0, 0, visit.copy_data()[0]) for visit in self.visit_ids]
+        return super().copy_data(default)
 
     def _timesheet_create_task(self, project):
         """ Generate task for the given so line, and link it.
@@ -140,7 +159,7 @@ class SaleOrderLine(models.Model):
     def _timesheet_service_generation(self):
         super()._timesheet_service_generation()
         visit_lines = self.filtered(lambda l: l.visit_id)
-        for line in visit_lines:
+        for index, line in enumerate(visit_lines):
             task_ids = line.get_section_line_ids().mapped('task_id')
             if not task_ids:
                 continue
@@ -148,16 +167,15 @@ class SaleOrderLine(models.Model):
                 # Can't group up the tasks if they're part of different projects
                 return
             project_id = task_ids[0].project_id
-            line.visit_id.task_id = line._generate_task_for_visit_line(project_id)
+            line.visit_id.task_id = line._generate_task_for_visit_line(project_id, index + 1)
             task_ids.write({'parent_id': line.visit_id.task_id.id})
-        self.task_id.filtered("is_fsm").synchronize_name_fsm()
+        (self.mapped('task_id') | self.visit_ids.task_id).filtered("is_fsm").synchronize_name_fsm()
 
-    def _generate_task_for_visit_line(self, project):
+    def _generate_task_for_visit_line(self, project, visit_no: int):
         self.ensure_one()
 
         task = self.env['project.task'].create({
-            'name': 'Temp Name',
-            'description': f"Parent task for {self.order_id.name}, visit {self.name}",
+            'name': f"{self.order_id.name} - " + _("Visit") + f" {visit_no} - {self.name}",
             'project_id': project.id,
             'equipment_ids': self.get_section_line_ids().mapped('equipment_ids').ids,
             'sale_order_id': self.order_id.id,
@@ -207,6 +225,14 @@ class SaleOrderLine(models.Model):
                 lines.append(line)
         return self.env['sale.order.line'].union(*lines)
 
+    @api.depends('display_type', 'order_id.order_line')
+    def _compute_section_line_ids(self):
+        for rec in self:
+            if rec.display_type == 'line_section':
+                rec.section_line_ids = [Command.set(rec.get_section_line_ids().ids)]
+            else:
+                rec.section_line_ids = False
+
     def _iterate_items_compute_bool(self, single_line_func):
         if not self.display_type:
             return single_line_func(self)
@@ -244,8 +270,7 @@ class SaleOrderLine(models.Model):
         uom_hour = self.env.ref('uom.product_uom_hour')
         uom_unit = self.env.ref('uom.product_uom_unit')
         templated_lines = self.filtered(lambda l: l.product_id.task_template_id
-                                                  and l.product_id.task_template_id.
-                                        planned_hours)
+                                                  and l.product_id.task_template_id.planned_hours)
         visit_lines = self.filtered(lambda l: l.visit_id)
         regular_lines = self - templated_lines - visit_lines
         for line in regular_lines:
@@ -265,3 +290,9 @@ class SaleOrderLine(models.Model):
         for line in visit_lines:
             line.task_duration = sum(line.get_section_line_ids().
                                      mapped('task_duration'))
+
+    @api.depends('product_id.detailed_type', 'product_id.service_tracking')
+    def _compute_is_fsm(self):
+        for rec in self:
+            rec.is_fsm = (rec.product_id.detailed_type == 'service'
+                          and rec.product_id.service_tracking == 'task_global_project')

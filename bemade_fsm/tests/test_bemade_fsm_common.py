@@ -4,12 +4,6 @@ from odoo import Command
 
 @tagged("-at_install", "post_install")
 class BemadeFSMBaseTest(TransactionCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.env.user.groups_id += cls.env.ref("account.group_delivery_invoice_address")
-        cls.env.company.create_default_fsm_visit = True
-
 
     @classmethod
     def _generate_project_manager_user(cls, name, login):
@@ -43,7 +37,6 @@ class BemadeFSMBaseTest(TransactionCase):
         user_group_fsm_user = cls.env.ref('industry_fsm.group_fsm_user')
         user_group_sales_user = cls.env.ref('sales_team.group_sale_salesman')
         user_group_sales_manager = cls.env.ref('sales_team.group_sale_manager')
-        # TODO: Split this out into a bemade_fsm_customer_product_code module if it's wanted
         user_product_customer = cls.env.ref(
             'customer_product_code.group_product_customer_code_user',
             raise_if_not_found=False
@@ -79,11 +72,8 @@ class BemadeFSMBaseTest(TransactionCase):
     @classmethod
     def _generate_sale_order(cls, partner=None, client_order_ref='Test Order', equipment=None, shipping_location=None):
         partner = partner or cls._generate_partner()
-        vals = {
-            'partner_id': partner.id,
-            'client_order_ref': client_order_ref,
-            'payment_term_id': cls.env.ref('account.account_payment_term_immediate').id,
-        }
+        vals = {'partner_id': partner.id,
+                'client_order_ref': client_order_ref}
         if equipment:
             vals.update({'default_equipment_ids': [Command.set([equipment.id])]})
         if shipping_location:
@@ -111,22 +101,6 @@ class BemadeFSMBaseTest(TransactionCase):
         })
 
     @classmethod
-    def _generate_product_category(cls):
-        company_id = cls.env.company.id
-        return cls.env['product.category'].create({
-            'name': 'Test Category',
-            'parent_id': cls.env.ref('product.product_category_all', False).id or False,
-            'property_account_income_categ_id': cls.env['account.account'].search(
-                [('account_type', '=', 'income'), ('company_id', '=', company_id)],
-                limit=1
-            ).id,
-            'property_account_expense_categ_id': cls.env['account.account'].search(
-                [('account_type', '=', 'expense_direct_cost'), ('company_id', '=', company_id)],
-                limit=1
-            ).id,
-        })
-
-    @classmethod
     def _generate_product(cls, name='Test Product', product_type='service', service_tracking='task_global_project',
                           project=None, task_template=None, service_policy='delivered_manual', uom=None):
         if 'project' in service_tracking and not project:
@@ -142,7 +116,6 @@ class BemadeFSMBaseTest(TransactionCase):
             'service_policy': service_policy,
             'uom_id': uom_id,
             'uom_po_id': uom_id,
-            'categ_id': cls._generate_product_category().id,
         })
 
     @classmethod
@@ -201,7 +174,7 @@ class BemadeFSMBaseTest(TransactionCase):
 
     def _invoice_sale_order(self, so):
         wiz = self.env['sale.advance.payment.inv'].with_context(
-            {'active_ids': [so.id]}).create([{}])
+            {'active_ids': [so.id]}).create({})
         wiz.create_invoices()
         inv = so.invoice_ids[-1]
         inv.action_post()
@@ -218,6 +191,19 @@ class BemadeFSMBaseTest(TransactionCase):
         visit = self._generate_visit(sale_order=so)
         sol1 = self._generate_sale_order_line(sale_order=so)
         sol2 = self._generate_sale_order_line(sale_order=so)
+        visit.so_section_id.sequence = 1
+        sol1.sequence = 2
+        sol2.sequence = 3
+        return so, visit, sol1, sol2
+
+    def _generate_so_with_one_visit_two_lines_and_descendants(self):
+        so = self._generate_sale_order()
+        visit = self._generate_visit(sale_order=so)
+        task_template = self._generate_task_template(structure=[2, 2, 2],
+                                                     names=['Parent', 'Child', 'Grandchild', 'Great-grandchild'])
+        product = self._generate_product(task_template=task_template)
+        sol1 = self._generate_sale_order_line(sale_order=so, product=product)
+        sol2 = self._generate_sale_order_line(sale_order=so, product=product)
         visit.so_section_id.sequence = 1
         sol1.sequence = 2
         sol2.sequence = 3

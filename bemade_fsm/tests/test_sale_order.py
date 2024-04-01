@@ -183,11 +183,11 @@ class TestSalesOrder(BemadeFSMBaseTest):
         subtasks = parent_task._get_all_subtasks()
 
         # Marking the subtasks done should not increment delivered quantity
-        subtasks.action_fsm_validate()
+        subtasks.action_fsm_validate(True)
         self.assertEqual(sol.qty_delivered, 0)
 
         # Marking the top-level tasks done should set the delivered quantity to some non-zero value based on the UOM
-        parent_task.action_fsm_validate()
+        parent_task.action_fsm_validate(True)
         self.assertTrue(sol.qty_delivered != 0)
 
     def test_task_contacts_through_sale_order(self):
@@ -287,3 +287,49 @@ class TestSalesOrder(BemadeFSMBaseTest):
         self.assertEqual(task.child_ids[0].description, template.subtasks[0].description)
         for t in task.child_ids[1:]:
             self.assertFalse(t.description)
+
+    def test_duplicate_sale_order_duplicates_visits(self):
+        """ Duplicated sales orders should have visits tied to their SO lines as in the original. The copied visits
+        should not have approximate dates set, however."""
+        so, visit, line1, line2 = self._generate_so_with_one_visit_two_lines()
+
+        so2 = so.copy()
+
+        self.assertTrue(so2.visit_ids)
+        visit2 = so2.visit_ids[0]
+        self.assertEqual(so2.order_line[0].visit_id, visit2)
+        self.assertEqual(visit2.label, visit.label)
+        self.assertFalse(visit2.approx_date)
+
+    def test_confirming_sale_order_creates_visit_if_none_created(self):
+        so = self._generate_sale_order()
+        so.company_id.create_default_fsm_visit = True
+        product = self._generate_product()
+        sol = self._generate_sale_order_line(so, product)
+
+        so.action_confirm()
+
+        visit_line = so.order_line.sorted('sequence')[0]
+        self.assertTrue(so.visit_ids)
+        self.assertEqual(visit_line.visit_id, so.visit_ids)
+
+    def test_confirming_sale_order_with_visit_creates_no_new_lines(self):
+        so = self._generate_sale_order()
+        so.company_id.create_default_fsm_visit = True
+        product = self._generate_product()
+        visit = self._generate_visit(so)
+
+        so.action_confirm()
+
+        self.assertEqual(len(so.visit_ids), 1)
+
+    def test_confirming_sale_order_creates_no_visit_if_setting_off(self):
+        so = self._generate_sale_order()
+        so.company_id.create_default_fsm_visit = False
+        product = self._generate_product()
+        sol = self._generate_sale_order_line(so, product)
+
+        so.action_confirm()
+
+        visit_line = so.order_line.sorted('sequence')[0]
+        self.assertFalse(so.visit_ids)

@@ -3,9 +3,8 @@
     <data>
         <template id="workorder_page_materials_table">
             <t t-set="order_lines"
-               t-value="doc.relevant_order_lines"/>
-            <!--.filtered(lambda l:
-                    l.product_id.type != 'service' and not l.is_downpayment and not l.visit_id)"/>-->
+               t-value="doc.relevant_order_lines.filtered(lambda l:
+                    l.product_id.type != 'service' and not l.is_downpayment and not l.visit_id)"/>
             <t t-if="order_lines">
                 <t t-set="visit_lines" t-value="order_lines.mapped('visit_id')"/>
                 <t t-set="section_lines"
