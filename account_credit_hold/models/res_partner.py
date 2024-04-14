@@ -11,10 +11,14 @@ class Partner(models.Model):
     hold_bg = fields.Boolean(string="Hold (technical)",
                              compute="_compute_hold_bg",
                              store=True,
-                             default=False)
+                             default=False,
+                             compute_sudo=True,
+                             )
     on_hold = fields.Boolean(string="Account on Hold",
                              help="Client account is on hold for unpaid overdue invoices.",
-                             compute="_compute_on_hold")
+                             compute="_compute_on_hold",
+                             compute_sudo=True,
+                             )
 
     @api.depends('postpone_hold_until', 'hold_bg')
     def _compute_on_hold(self):
