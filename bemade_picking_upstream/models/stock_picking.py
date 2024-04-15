@@ -17,10 +17,10 @@ class StockPicking(models.Model):
         compute_sudo=True,
     )
 
-    @api.depends('move_lines', 'move_lines.move_orig_ids', 'move_lines.move_orig_ids.picking_id')
+    @api.depends('move_ids', 'move_ids.move_orig_ids', 'move_ids.move_orig_ids.picking_id')
     def _compute_upstream_picking_ids(self):
         for rec in self:
-            rec.upstream_picking_ids = rec.move_lines.mapped('move_orig_ids').mapped('picking_id') - rec
+            rec.upstream_picking_ids = rec.move_ids.mapped('move_orig_ids').mapped('picking_id') - rec
             rec.upstream_picking_count = len(rec.upstream_picking_ids)
 
     def action_view_upstream_transfers(self):
