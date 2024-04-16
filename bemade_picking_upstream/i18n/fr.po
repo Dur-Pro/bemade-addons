@@ -1,0 +1,41 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* bemade_picking_upstream
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0+e\n"
+"Report-Msgid-Bugs-To: marc@bemade.org\n"
+"POT-Creation-Date: 2024-04-16 00:43+0000\n"
+"PO-Revision-Date: 2024-04-16 00:43+0000\n"
+"Last-Translator: Marc Durepos <marc@bemade.org>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: bemade_picking_upstream
+#: model:ir.model,name:bemade_picking_upstream.model_stock_picking
+msgid "Transfer"
+msgstr "Transfert"
+
+#. module: bemade_picking_upstream
+#: model:ir.model.fields,help:bemade_picking_upstream.field_stock_picking__upstream_picking_ids
+msgid "Transfers that this transfer depends on for stock availability."
+msgstr "Transferts sur lesquels le transfert actuel dépend pour la disponibilité du stock."
+
+#. module: bemade_picking_upstream
+#: model:ir.model.fields,field_description:bemade_picking_upstream.field_stock_picking__upstream_picking_count
+msgid "Upstream Picking Count"
+msgstr "Nombre de transferts en amont"
+
+#. module: bemade_picking_upstream
+#: model_terms:ir.ui.view,arch_db:bemade_picking_upstream.stock_picking_view_form
+msgid "Upstream Transfer(s)"
+msgstr "Transfert(s) en amont"
+
+#. module: bemade_picking_upstream
+#: model:ir.model.fields,field_description:bemade_picking_upstream.field_stock_picking__upstream_picking_ids
+msgid "Upstream Transfers"
+msgstr "Transferts en amont"
