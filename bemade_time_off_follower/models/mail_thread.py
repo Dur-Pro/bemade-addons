@@ -42,7 +42,8 @@ class MailThread(models.AbstractModel):
                 # Loop through each leave
                 for leave in leaves:
                     # If the leave has an alternate follower and the follower is not already in the recipients list
-                    if leave.alternate_follower_id and leave.alternate_follower_id.partner_id.id not in recipients:
+                    recipient_ids = [rec['id'] for rec in recipients]
+                    if leave.alternate_follower_id and leave.alternate_follower_id.partner_id.id not in recipient_ids:
                         # Log the addition of the alternate follower
                         _logger.info(
                             f"Adding {leave.alternate_follower_id.partner_id.name} as follower for {employee.name} "
