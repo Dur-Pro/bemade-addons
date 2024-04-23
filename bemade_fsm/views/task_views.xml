@@ -120,28 +120,32 @@
         <record id="industry_fsm.project_task_action_fsm_map"
                 model="ir.actions.act_window">
             <field name="domain">[('is_fsm', '=', True),
-                                  ('display_project_id', '!=', False),
+                                  ('project_id', '!=', False),
+                                  ('display_in_project', '=', True),
                                   ('parent_id', '=', False)]
             </field>
         </record>
         <record id="industry_fsm.project_task_action_to_schedule_fsm"
                 model="ir.actions.act_window">
             <field name="domain">[('is_fsm', '=', True),
-                                  ('display_project_id', '!=', False),
+                                  ('project_id', '!=', False),
+                                  ('display_in_project', '=', True),
                                   ('parent_id', '=', False)]
             </field>
         </record>
         <record id="industry_fsm.project_task_action_all_fsm"
                 model="ir.actions.act_window">
             <field name="domain">[('is_fsm', '=', True),
-                                  ('display_project_id', '!=', False),
+                                  ('project_id', '!=', False),
+                                  ('display_in_project', '=', True),
                                   ('parent_id', '=', False)]
             </field>
         </record>
         <record id="industry_fsm_sale.project_task_action_to_invoice_fsm"
                 model="ir.actions.act_window">
             <field name="domain">[('is_fsm', '=', True),
-                                  ('display_project_id', '!=', False),
+                                  ('project_id', '!=', False),
+                                  ('display_in_project', '=', True),
                                   ('parent_id', '=', False)]
             </field>
         </record>
@@ -149,21 +153,24 @@
         <record id="industry_fsm.project_task_action_fsm_planning_groupby_user"
                 model="ir.actions.act_window">
             <field name="domain">[('is_fsm', '=', True),
-                                  ('display_project_id', '!=', False),
+                                  ('project_id', '!=', False),
+                                  ('display_in_project', '=', True),
                                   ('parent_id', '=', False)]
             </field>
         </record>
         <record id="industry_fsm.project_task_action_fsm_planning_groupby_project"
                 model="ir.actions.act_window">
             <field name="domain">[('is_fsm', '=', True),
-                                  ('display_project_id', '!=', False),
+                                  ('project_id', '!=', False),
+                                  ('display_in_project', '=', True),
                                   ('parent_id', '=', False)]
             </field>
         </record>
         <record id="industry_fsm_report.project_task_action_fsm_planning_groupby_worksheet"
                 model="ir.actions.act_window">
             <field name="domain">[('is_fsm', '=', True),
-                                  ('display_project_id', '!=', False),
+                                  ('project_id', '!=', False),
+                                  ('display_in_project', '=', True),
                                   ('parent_id', '=', False)]
             </field>
         </record>
