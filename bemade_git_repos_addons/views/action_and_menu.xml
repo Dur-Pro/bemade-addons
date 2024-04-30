@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>        <!-- Action to open the git_repos Tree View -->
+        <record id="action_git_repos" model="ir.actions.act_window">
+            <field name="name">Git Repositories</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">git.repos</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+        </record>
+
+        <record id="action_git_addons" model="ir.actions.act_window">
+            <field name="name">Git Addons</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">git.addons</field>
+            <field name="view_mode">tree,form</field>
+            <field name="domain">[]</field>
+        </record>
+
+        <!-- Menu item to open the 'Git Addons' -->
+        <menuitem id="menu_git_addons_main" name="Git Addons" parent="base.menu_apps" sequence="10" />
+
+        <!-- Sub-menu items -->
+        <menuitem id="menu_git_repos" name="Git Repositories" parent="menu_git_addons_main" action="action_git_repos" sequence="1"/>
+        <menuitem id="menu_git_addons" name="Git Addons" parent="menu_git_addons_main" action="action_git_addons" sequence="2"/>
+
+
+        <!-- Menu item to open the git_repos Tree View -->
+<!--        <menuitem id="menu_git_repos" name="Git Repositories" parent="base.menu_settings" action="action_git_repos" sequence="1"/>-->
+    </data>
+</odoo>

@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+<data>
+    <!-- Tree View for the git_repos model -->
+    <record id="view_git_repos_tree" model="ir.ui.view">
+        <field name="name">git.repos.tree</field>
+        <field name="model">git.repos</field>
+        <field name="arch" type="xml">
+            <tree create="false" js_class="button_create_repos">
+                <field name="name"/>
+                <field name="url"/>
+                <field name="active_branch"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View for the git_repos model -->
+    <record id="view_git_repos_form" model="ir.ui.view">
+        <field name="name">git.repos.form</field>
+        <field name="model">git.repos</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="url"/>
+                        <field name="active_branch"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</data>
+</odoo>

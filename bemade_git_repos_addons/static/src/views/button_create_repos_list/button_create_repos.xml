@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+
+	<t t-name="bemade_git_repos_addons.ButtonCreateReposView.Buttons" t-inherit="web.ListView.Buttons" t-inherit-mode="primary" owl="1">
+		<xpath expr="//div[@t-if='props.showButtons']" position="after">
+			<button type="button" t-on-click="onCreateRepos" class="btn btn-primary">
+				Create
+			</button>
+		</xpath>
+	</t>
+
+</templates>

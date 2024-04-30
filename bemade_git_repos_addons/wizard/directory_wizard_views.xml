@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="directory_wizard_form_view" model="ir.ui.view">
+        <field name="name">directory.wizard.form</field>
+        <field name="model">directory.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Directory Selection">
+                <sheet>
+                    <notebook>
+                        <page string="Set Directories">
+                            <group>
+                                <field name="addons_dir" string="Addons Directory"/>
+                                <field name="repos_dir" string="Repos Directory"/>
+                            </group>
+                        </page>
+                        <page string="Create New irectory">
+                            <group>
+                                <field name="new_directory" string="Directory Name"/>
+                                <button name="create_directory" string="Create" type="object" class="btn-primary"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <footer>
+                    <button name="apply_selections" string="Apply" type="object" class="btn-success"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

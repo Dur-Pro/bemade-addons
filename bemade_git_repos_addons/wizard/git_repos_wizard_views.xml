@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <record id="view_git_repos_wizard_form" model="ir.ui.view">
+            <field name="name">git.repos.wizard.form</field>
+            <field name="model">git.repos.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Clone Repository">
+                    <group>
+                        <field name="url"/>
+                        <field name="branch_id"/>
+                    </group>
+                    <footer>
+<!--                        <button name="action_confirm" string="Clone" type="object" class="btn-primary"/>-->
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+    </data>
+</odoo>

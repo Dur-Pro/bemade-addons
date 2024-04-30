@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Tree View for the git_addons model -->
+        <record id="view_git_addons_tree" model="ir.ui.view">
+            <field name="name">git.addons.tree</field>
+            <field name="model">git.addons</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name"/>
+                    <field name="branch_id"/>
+                    <field name="active_branch"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Form View for the git_addons model -->
+        <record id="view_git_addons_form" model="ir.ui.view">
+            <field name="name">git.addons.form</field>
+            <field name="model">git.addons</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="branch_id"/>
+                            <field name="active_branch"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+    </data>
+</odoo>
