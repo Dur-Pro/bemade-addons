@@ -9,14 +9,21 @@ class DirectoryWizard(models.TransientModel):
     # Directories to exclude from the list, including hidden directories and directories that are not relevant
     EXCLUDED_DIRS = [
         '.idea',
+        '.cache',
+        '.config',
         '.git',
+        '.local',
         '.odoo-deploy',
+        '.ssh',
         '.testing',
         'conf',
         'design-themes',
         'enterprise',
+        'filestore'
         'Notes',
         'odoo',
+        'server',
+        'themes',
         'tools',
         'venv',
     ]
