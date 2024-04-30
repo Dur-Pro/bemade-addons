@@ -19,7 +19,7 @@ class DirectoryWizard(models.TransientModel):
         'conf',
         'design-themes',
         'enterprise',
-        'filestore'
+        'filestore',
         'Notes',
         'odoo',
         'server',
