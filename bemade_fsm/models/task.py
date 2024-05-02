@@ -1,7 +1,4 @@
 from odoo import fields, models, api, Command, _
-from odoo.exceptions import ValidationError, UserError
-from odoo.osv import expression
-from collections import defaultdict, namedtuple
 from odoo.addons.project.models.project_task import CLOSED_STATES
 import re
 
@@ -23,9 +20,6 @@ class Task(models.Model):
         relation="task_work_order_contact_rel",
         column1="task_id",
         column2="res_partner_id",
-        compute="_compute_contacts",
-        inverse="_inverse_contacts",
-        store=True
     )
 
     site_contacts = fields.Many2many(
@@ -33,9 +27,6 @@ class Task(models.Model):
         relation="task_site_contact_rel",
         column1="task_id",
         column2="res_partner_id",
-        compute="_compute_contacts",
-        inverse="_inverse_contacts",
-        store=True
     )
 
     # Override related field to make it return false if this is an FSM subtask
@@ -77,6 +68,12 @@ class Task(models.Model):
     def create(self, vals):
         res = super().create(vals)
         for rec in res:
+            if rec.parent_id and rec.is_fsm:
+                rec.partner_id = rec.parent_id.partner_id
+                if not rec.work_order_contacts and rec.parent_id:
+                    rec.work_order_contacts = rec.parent_id.work_order_contacts
+                if not rec.site_contacts and rec.parent_id:
+                    rec.site_contacts = rec.parent_id.site_contacts
             if rec.sale_order_id:
                 seq = 1
                 prev_seqs = self.sale_order_id.tasks_ids and \
@@ -87,6 +84,11 @@ class Task(models.Model):
                     seq += max(map(lambda n: int(n.group(1)) if n else 0, matches))
                 rec.work_order_number = rec.sale_order_id.name.replace('SO', 'SVR', 1) \
                                         + f"-{seq}"
+                # If the task is linked to a sales order and has no parent, it should inherit SO work order contacts
+                if not rec.parent_id and not rec.work_order_contacts and rec.sale_order_id.work_order_contacts:
+                    rec.work_order_contacts = rec.sale_order_id.work_order_contacts
+                if not rec.parent_id and not rec.site_contacts and rec.sale_order_id.site_contacts:
+                    rec.site_contacts = rec.sale_order_id.site_contacts
         return res
 
     def write(self, vals):
@@ -101,6 +103,10 @@ class Task(models.Model):
             # Here we use child_ids instead of _get_all_subtasks() so as to allow for setting propagate_assignment
             # to false on a child task.
             to_propagate.child_ids.write({'user_ids': vals['user_ids']})
+        if 'site_contacts' in vals and self.child_ids:
+            self._get_all_subtasks().write({'site_contacts': [Command.set(self.site_contacts.ids)]})
+        if 'work_order_contacts' in vals and self.child_ids:
+            self._get_all_subtasks().write({'work_order_contacts': [Command.set(self.work_order_contacts.ids)]})
         return res
 
     @api.depends('sale_order_id')
@@ -122,30 +128,6 @@ class Task(models.Model):
                 or project.type_ids[-1:]
             for project in self.project_id
         }
-
-    @api.depends('sale_line_id.order_id.site_contacts',
-                 'sale_line_id.order_id.work_order_contacts')
-    def _compute_contacts(self):
-        """ The work order contacts and site contacts for a given task are taken from the sale order if the task
-        is related to one, and from the task's customer if there is no sale order related to the task."""
-        for rec in self:
-            site_contacts = self.sale_line_id and self.sale_line_id.order_id.site_contacts or \
-                            self.partner_id.site_contacts
-            work_order_contacts = self.sale_line_id and self.sale_line_id.order_id.work_order_contacts or \
-                                  self.partner_id.work_order_contacts
-            rec.write({
-                'site_contacts': [Command.set(site_contacts.ids)],
-                'work_order_contacts': [Command.set(work_order_contacts.ids)]
-            })
-
-    def _inverse_contacts(self):
-        """ If the task is linked to a sales order, the sales order should have its contacts updated to match."""
-        for rec in self:
-            if rec.sale_line_id:
-                rec.sale_line_id.order_id.write({
-                    'work_order_contacts': [Command.set(rec.work_order_contacts.ids)],
-                    'site_contacts': [Command.set(rec.site_contacts.ids)],
-                })
 
     @api.depends('parent_id.visit_id', 'project_id.is_fsm', 'project_id.allow_billable')
     def _compute_allow_billable(self):

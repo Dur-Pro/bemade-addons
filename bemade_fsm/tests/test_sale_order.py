@@ -211,33 +211,6 @@ class TestSalesOrder(BemadeFSMBaseTest):
         self.assertEqual(sol.task_id.work_order_contacts, partner.work_order_contacts)
         self.assertEqual(sol.task_id.site_contacts, partner.site_contacts)
 
-    def test_changing_task_contacts_mirrors_with_sale_order(self):
-        partner = self._generate_partner()
-        contact = self._generate_partner("Contact", "person", partner)
-        so = self._generate_sale_order(partner)
-        product = self._generate_product()
-        sol = self._generate_sale_order_line(so, product)
-        so.action_confirm()
-        task = sol.task_id
-        task_form = Form(task)
-
-        # Now change the site/work order contact on the task and make sure it feeds back to the sales order
-        task_form.site_contacts.add(contact)
-        task_form.work_order_contacts.add(contact)
-        task_form.save()
-
-        self.assertEqual(task.site_contacts, so.site_contacts)
-        self.assertEqual(task.work_order_contacts, so.work_order_contacts)
-
-        # Test changing it on the SO feeds back to the task as well
-        f = Form(so)
-        f.work_order_contacts.remove(contact.id)
-        f.site_contacts.remove(contact.id)
-        f.save()
-
-        self.assertEqual(task.site_contacts, so.site_contacts)
-        self.assertEqual(task.work_order_contacts, so.work_order_contacts)
-
     def test_tasks_created_at_order_confirmation_have_no_assignees(self):
         so, visit, sol1, sol2 = self._generate_so_with_one_visit_two_lines()
         user = self._generate_project_user(name="User", login='login')

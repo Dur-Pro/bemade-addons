@@ -48,14 +48,14 @@ class Equipment(models.Model):
         args = args or []
         if name:
             equipments = self.search([
-                '|', '|', '|',
+                '|', '|',
                 ('pid_tag', operator, name),
                 ('name', operator, name),
                 ('partner_location_id.name', operator, name)],
                 limit=limit)
         else:
             equipments = self.search(args, limit=limit)
-        return equipments.name_get()
+        return [(equipment.id, equipment.display_name) for equipment in equipments]
 
     def action_view_equipment(self):
         return {
