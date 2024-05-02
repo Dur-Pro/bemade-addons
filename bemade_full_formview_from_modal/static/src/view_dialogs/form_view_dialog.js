@@ -1,22 +1,23 @@
 /** @odoo-module **/
 
 import { patch } from "@web/core/utils/patch";
-import { FormController } from "@web/views/form/form_controller";
 import { useService } from "@web/core/utils/hooks";
+import { X2ManyFieldDialog } from "@web/views/fields/relational_utils"
 
-patch(FormController.prototype, "bemade_full_formview_from_modal.FormController", {
+patch(X2ManyFieldDialog.prototype, {
     setup () {
-        this._super();
-        this.action = useService("action")
+        super.setup();
+        this.action = useService('action')
+        this.env.dialogData.onOpenButtonClicked = this.onOpenButtonClicked.bind(this);
     },
     onOpenButtonClicked: function () {
         this.action.doAction({
             type: "ir.actions.act_window",
-            res_model: this.props.resModel,
-            res_id: this.props.resId,
+            res_model: this.record.resModel,
+            res_id: this.record.resId,
             views: [[false, "form"]],
             target: "current",
             context: this.props.context,
         })
     }
-});
+})

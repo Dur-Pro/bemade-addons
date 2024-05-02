@@ -25,12 +25,15 @@
     'author': 'Bemade Inc.',
     'website': 'http://www.bemade.org',
     'license': 'OPL-1',
-    'depends': [],
+    'depends': ['base'],  # For testing, install contacts module as well.
     'data': [],
     'assets': {
         'web.assets_backend': [
-            # 'bemade_full_formview_from_modal/static/src/**/*',
+            'bemade_full_formview_from_modal/static/src/**/*',
         ],
+        'web.assets_tests': [
+            'bemade_full_formview_from_modal/static/tests/**/*',
+        ]
     },
     'installable': True,
     'auto_install': False
