@@ -27,7 +27,7 @@ class WebsiteVisitor(models.Model):
         _logger.info('User Agent: %s', request.httprequest.user_agent.string)
 
         # Obtenez les données de GeoIP et d'autres sources
-        geoip_info = request.httprequest.environ.get('geoip', {})
+        geoip_info = request.geoip
         user_agent = request.httprequest.user_agent
 
         _logger.debug('geoip_info: %s', geoip_info)
