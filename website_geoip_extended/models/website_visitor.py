@@ -30,6 +30,8 @@ class WebsiteVisitor(models.Model):
         geoip_info = request.httprequest.environ.get('geoip', {})
         user_agent = request.httprequest.user_agent
 
+        _logger.debug('geoip_info: %s', geoip_info)
+
         _logger.info('User Agent Details: Platform: %s, Browser: %s, Version: %s', user_agent.platform, user_agent.browser, user_agent.version)
 
         # _logger.info('User Agent Details: OS: %s, Browser: %s, Device: %s', user_agent.os, user_agent.browser, user_agent.platform)
