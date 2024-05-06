@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Extend form view -->
+        <record id="website_geoip_extended.website_visitor_view_form" model="ir.ui.view">
+            <field name="inherit_id" ref="website.website_visitor_view_form" />
+            <field name="model">website.visitor</field>
+            <field name="arch" type="xml">
+                <field name="website_id" position="after">
+                    <field name="region"/>
+                    <field name="postal_code"/>
+                    <field name="latitude"/>
+                    <field name="longitude"/>
+                    <field name="ip_address"/>
+                    <field name="isp"/>
+                    <field name="connection_type"/>
+                    <field name="device_type"/>
+                    <field name="operating_system"/>
+                    <field name="browser"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Extend tree view -->
+        <record id="website_geoip_extended.website_visitor_view_tree" model="ir.ui.view">
+            <field name="inherit_id" ref="website.website_visitor_view_tree" />
+            <field name="model">website.visitor</field>
+            <field name="arch" type="xml">
+                <field name="create_date" position="after">
+                    <field name="region" optional="show"/>
+                    <field name="postal_code" optional="show"/>
+                    <field name="latitude" optional="show"/>
+                    <field name="longitude" optional="show"/>
+                    <field name="ip_address" optional="show"/>
+                    <field name="isp" optional="show"/>
+                    <field name="connection_type" optional="show"/>
+                    <field name="device_type" optional="show"/>
+                    <field name="operating_system" optional="show"/>
+                    <field name="browser" optional="show"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>
