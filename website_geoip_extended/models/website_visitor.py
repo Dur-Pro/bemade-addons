@@ -10,13 +10,11 @@ class WebsiteVisitor(models.Model):
     _inherit = 'website.visitor'
 
     # Ajout de champs supplémentaires pour collecter plus d'informations sur le visiteur
-    region = fields.Char("Region")
+    city = fields.Char("City")
     postal_code = fields.Char("Postal Code")
     latitude = fields.Float("Latitude")
     longitude = fields.Float("Longitude")
     ip_address = fields.Char("IP Address")
-    isp = fields.Char("Internet Service Provider")
-    connection_type = fields.Char("Connection Type")
     device_type = fields.Char("Device Type")
     operating_system = fields.Char("Operating System")
     browser = fields.Char("Browser")
@@ -44,13 +42,11 @@ class WebsiteVisitor(models.Model):
 
         # Mise à jour du visiteur avec les nouvelles données
         update_values = {
-            'region': geoip_info.get('region'),
-            'postal_code': geoip_info.get('postal_code'),
-            'latitude': geoip_info.get('latitude'),
-            'longitude': geoip_info.get('longitude'),
+            'city': geoip_info.city.names.en,
+            'postal_code': geoip_info.postal.code,
+            'latitude': geoip_info.location.latitude,
+            'longitude': geoip_info.location.longitude,
             'ip_address': request.httprequest.remote_addr,
-            'isp': geoip_info.get('isp'),
-            'connection_type': geoip_info.get('connection_type'),
             'device_type': user_agent.platform,
             'operating_system': user_agent.platform,  # Modifié pour utiliser platform
             'browser': user_agent.browser,
