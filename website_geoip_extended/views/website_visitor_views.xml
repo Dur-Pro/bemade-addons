@@ -7,13 +7,11 @@
             <field name="model">website.visitor</field>
             <field name="arch" type="xml">
                 <field name="website_id" position="after">
-                    <field name="region"/>
+                    <field name="city"/>
                     <field name="postal_code"/>
                     <field name="latitude"/>
                     <field name="longitude"/>
                     <field name="ip_address"/>
-                    <field name="isp"/>
-                    <field name="connection_type"/>
                     <field name="device_type"/>
                     <field name="operating_system"/>
                     <field name="browser"/>
@@ -27,13 +25,11 @@
             <field name="model">website.visitor</field>
             <field name="arch" type="xml">
                 <field name="create_date" position="after">
-                    <field name="region" optional="show"/>
+                    <field name="city" optional="show"/>
                     <field name="postal_code" optional="show"/>
                     <field name="latitude" optional="show"/>
                     <field name="longitude" optional="show"/>
                     <field name="ip_address" optional="show"/>
-                    <field name="isp" optional="show"/>
-                    <field name="connection_type" optional="show"/>
                     <field name="device_type" optional="show"/>
                     <field name="operating_system" optional="show"/>
                     <field name="browser" optional="show"/>
