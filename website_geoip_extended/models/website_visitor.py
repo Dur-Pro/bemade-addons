@@ -42,7 +42,7 @@ class WebsiteVisitor(models.Model):
 
         # Mise à jour du visiteur avec les nouvelles données
         update_values = {
-            'city': geoip_info.city.names.en,
+            'city': geoip_info.city.name,
             'postal_code': geoip_info.postal.code,
             'latitude': geoip_info.location.latitude,
             'longitude': geoip_info.location.longitude,
