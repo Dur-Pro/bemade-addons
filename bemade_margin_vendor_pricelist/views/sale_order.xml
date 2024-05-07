@@ -8,14 +8,14 @@
             <field name="arch" type="xml">
                 <field name="margin" position="replace">
                     <field name="margin" invisible="True"/>
-                    <field name="margin_actual" class="oe_inline"/>
+                    <field name="gross_profit" class="oe_inline"/>
                 </field>
                 <label for="margin" position="replace">
-                    <label for="margin_actual" groups="base.group_user"/>
+                    <label for="gross_profit" groups="base.group_user"/>
                 </label>
                 <field name="margin_percent" position="replace">
                     <field name="margin_percent" invisible="True"/>
-                    <field name="margin_percent_actual" nolabel="1" class="oe_inline"
+                    <field name="gross_profit_percent" nolabel="1" class="oe_inline"
                            widget="percentage" groups="base.group_user"/>
                 </field>
             </field>
@@ -42,11 +42,11 @@
                 </field>
                 <field name="margin" position="replace">
                     <field name="margin" invisible="True"/>
-                    <field name="margin_actual" optional="hide"/>
+                    <field name="gross_profit" optional="hide"/>
                 </field>
                 <field name="margin_percent" position="replace">
                     <field name="margin_percent" invisible="True"/>
-                    <field name="margin_percent_actual" optional="hide"
+                    <field name="gross_profit_percent" optional="hide"
                            widget="percentage" groups="base.group_user"/>
                 </field>
             </field>

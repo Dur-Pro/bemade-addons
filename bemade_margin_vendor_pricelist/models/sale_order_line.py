@@ -12,36 +12,36 @@ class SaleOrderLine(models.Model):
         digits='Product Price'
     )
 
-    margin_percent_vendor = fields.Float(
-        string='Margin (%) on Vendor Price',
+    gross_profit_percent_vendor = fields.Float(
+        string='GP (%) on Vendor Price',
         groups='base.group_user',
         group_operator='avg',
-        compute='_compute_margin_vendor'
+        compute='_compute_gp_vendor'
     )
 
-    margin_vendor = fields.Float(
-        string='Margin on Vendor Price',
+    gross_profit_vendor = fields.Float(
+        string='GP on Vendor Price',
         groups='base.group_user',
         digits='Product Price',
-        compute='_compute_margin_vendor'
+        compute='_compute_gp_vendor'
     )
 
     purchase_price_actual = fields.Float(
-        compute="_compute_actual_margins",
+        compute="_compute_actual_gp",
         digits='Product Price',
         groups="base.group_user",
         string="Purchase Price"
     )
 
-    margin_actual = fields.Float(
-        compute="_compute_actual_margins",
+    gross_profit = fields.Float(
+        compute="_compute_actual_gp",
         digits='Product Price',
         groups="base.group_user",
         string="Our Margin"
     )
 
-    margin_percent_actual = fields.Float(
-        compute="_compute_actual_margins",
+    gross_profit_percent = fields.Float(
+        compute="_compute_actual_gp",
         groups="base.group_user",
         string="Our Margin (%)"
     )
@@ -54,8 +54,8 @@ class SaleOrderLine(models.Model):
         'move_ids.state',
         'qty_to_deliver'
     )
-    def _compute_actual_margins(self):
-        """ We want to use the margin based on average inventory valuation when the
+    def _compute_actual_gp(self):
+        """ We want to use the gross profit based on average inventory valuation when the
         sale order line will be completely fulfilled (or has been fulfilled) from stock.
         For product not yet in stock we want to use the vendor price. We can also have
         blended calculations (partly on vendor price, partly on stock valuation). This
@@ -65,8 +65,8 @@ class SaleOrderLine(models.Model):
         """
         non_product_lines = self.filtered(lambda r: not r.product_id)
         non_product_lines.purchase_price_actual = 0.0
-        non_product_lines.margin_actual = 0.0
-        non_product_lines.margin_percent_actual = 0.0
+        non_product_lines.gross_profit = 0.0
+        non_product_lines.gross_profit_percent = 0.0
         for line in self - non_product_lines:
             stock_missing = line._determine_missing_stock()
             if float_is_zero(stock_missing, precision_rounding=line.product_uom.rounding):
@@ -83,9 +83,9 @@ class SaleOrderLine(models.Model):
                     (stock_missing * line.purchase_price_vendor
                      + qty_from_stock * line.purchase_price) \
                     / line.product_uom_qty
-            line.margin_actual = line.price_subtotal - (
+            line.gross_profit = line.price_subtotal - (
                     line.purchase_price_actual * line.product_uom_qty)
-            line.margin_percent_actual = line.price_subtotal and line.margin_actual / line.price_subtotal
+            line.gross_profit_percent = line.price_subtotal and line.gross_profit / line.price_subtotal
 
     def _determine_missing_stock(self) -> float:
         """ Compute how much stock is missing to meet an order line's demand.  In the
@@ -146,13 +146,13 @@ class SaleOrderLine(models.Model):
             ) if to_cur and suppinfo.price else suppinfo.price
 
     @api.depends('purchase_price_vendor')
-    def _compute_margin_vendor(self):
+    def _compute_gp_vendor(self):
         for line in self:
             if not line.price_unit or float_is_zero(line.price_unit):
-                line.margin_vendor = 0
-                line.margin_percent_vendor = 0
+                line.gross_profit_vendor = 0
+                line.gross_profit_percent_vendor = 0
                 continue
-            unit_margin = line.price_unit - line.purchase_price_vendor
-            line.margin_percent_vendor = unit_margin / line.price_unit
+            unit_gp = line.price_unit - line.purchase_price_vendor
+            line.gross_profit_percent_vendor = unit_gp / line.price_unit
 
-            line.margin_vendor = unit_margin * line.product_uom_qty
+            line.gross_profit_vendor = unit_gp * line.product_uom_qty
