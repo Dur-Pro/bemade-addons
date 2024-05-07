@@ -37,15 +37,15 @@
             <field name="model">sale.order</field>
             <field name="arch" type="xml">
                 <field name="purchase_price" position="replace">
-                    <field name="purchase_price" invisible="True"/>
+                    <field name="purchase_price" column_invisible="True"/>
                     <field name="purchase_price_actual" optional="hide"/>
                 </field>
                 <field name="margin" position="replace">
-                    <field name="margin" invisible="True"/>
+                    <field name="margin" column_invisible="True"/>
                     <field name="gross_profit" optional="hide"/>
                 </field>
                 <field name="margin_percent" position="replace">
-                    <field name="margin_percent" invisible="True"/>
+                    <field name="margin_percent" column_invisible="True"/>
                     <field name="gross_profit_percent" optional="hide"
                            widget="percentage" groups="base.group_user"/>
                 </field>
