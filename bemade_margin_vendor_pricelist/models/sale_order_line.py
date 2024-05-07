@@ -37,13 +37,13 @@ class SaleOrderLine(models.Model):
         compute="_compute_actual_gp",
         digits='Product Price',
         groups="base.group_user",
-        string="Our Margin"
+        string="Gross Profit"
     )
 
     gross_profit_percent = fields.Float(
         compute="_compute_actual_gp",
         groups="base.group_user",
-        string="Our Margin (%)"
+        string="Gross Profit (%)"
     )
 
     @api.depends(

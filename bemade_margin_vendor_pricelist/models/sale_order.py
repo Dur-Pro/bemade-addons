@@ -5,7 +5,7 @@ from odoo.tools.float_utils import float_is_zero, float_compare
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
 
-    gross_profit = fields.Monetary("Our Margin", compute='_compute_margin_actual', store=False)
+    gross_profit = fields.Monetary("Gross Profit", compute='_compute_margin_actual', store=False)
 
     gross_profit_percent = fields.Float(
         string='Gross Profit (%)',
