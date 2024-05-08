@@ -18,7 +18,7 @@
 #
 {
     'name': 'Sales Margin on Vendor Price',
-    'version': '17.0.0.0.3',
+    'version': '17.0.0.0.4',
     'summary': 'Enables calculation of sales margins based on vendor pricelists.',
     'description': """Adds a new method for calculating """,
     'author': 'Bemade Inc.',
