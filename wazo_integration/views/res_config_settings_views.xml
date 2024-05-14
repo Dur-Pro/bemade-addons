@@ -1,0 +1,62 @@
+<!--<odoo>-->
+<!--    <record id="res_config_settings_view_form_inherit_wazo" model="ir.ui.view">-->
+<!--        <field name="name">res.config.settings.inherit.wazo</field>-->
+<!--        <field name="model">res.config.settings</field>-->
+<!--        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//block[@name='integration']" position="inside">-->
+<!--                <setting string="Wazo Configuration">-->
+<!--                    <div>-->
+<!--                       <div class="content-group mt16">-->
+<!--                            <label for="wazo_name" class="o_light_label mr8">Wazo Name</label>-->
+<!--                            <field name="wazo_name" placeholder="Enter Wazo Name"/>-->
+<!--                        </div>-->
+<!--                        <div class="content-group mt16">-->
+<!--                            <label for="wazo_server_url" class="o_light_label mr8">Wazo Server URL</label>-->
+<!--                            <field name="wazo_server_url" placeholder="Enter Wazo Server URL"/>-->
+<!--                        </div>-->
+<!--                        <div class="content-group mt16">-->
+<!--                            <label for="wazo_api_token" class="o_light_label mr8">Wazo API Token</label>-->
+<!--                            <field name="wazo_api_token" placeholder="Enter Wazo API Token"/>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </setting>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+<!--</odoo>-->
+
+
+<odoo>
+    <record id="res_config_settings_view_form_inherit_wazo" model="ir.ui.view">
+        <field name="name">res.config.settings.inherit.wazo</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base_setup.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//block[@name='integration']" position="inside">
+                <setting string="Wazo Configuration" name="wazo_settings">
+                    <div class="row mt16 o_settings_container">
+                        <div>
+                            <div class="content-group mt16">
+                                <label for="wazo_tenant" class="o_light_label mr8">Wazo Tenant</label>
+                                <field name="wazo_tenant" placeholder="Enter Wazo Tenant"/>
+                            </div>
+                            <div class="content-group mt16">
+                                <label for="wazo_server_url" class="o_light_label mr8">Wazo Server URL</label>
+                                <field name="wazo_server_url"  placeholder="Enter Wazo Server URL"/>
+                            </div>
+                            <div class="content-group mt16">
+                                <label for="wazo_username" class="o_light_label mr8">Wazo Username</label>
+                                <field name="wazo_username" placeholder="Enter Wazo Username"/>
+                            </div>
+                            <div class="content-group mt16">
+                                <label for="wazo_password" class="o_light_label mr8">Wazo Password</label>
+                                <field name="wazo_password" placeholder="Enter Wazo Password"/>
+                            </div>
+                        </div>
+                    </div>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>
