@@ -9,6 +9,11 @@ postponed on a specific partner's form view. This effectively gives clients an e
 grace period, allowing orders to be confirmed until the period ends.
 
 # Change Log
+
+## 17.0.1.0.0 (2024-05-15)
+
+Various modifications to adapt code to Odoo 17.0
+
 ## 15.0.2.0.0 (2023-05-04)
 
 Complete remake of the module, making the "Credit Hold" an action that is either manually or
