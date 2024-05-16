@@ -16,7 +16,7 @@
     - The 'Spam' stage is automatically created by this module.
     """,
     'sequence': 10,
-    'license': 'GPL-3',
+ 'license': 'LGPL-3',
     'author': 'Bemade',
     'website': 'https://www.bemade.org',
     'depends': [
