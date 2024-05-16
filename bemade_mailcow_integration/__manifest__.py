@@ -16,7 +16,7 @@
     Automatically create and manage mailboxes and aliases in Mailcow when they are created in Odoo.
     """,
     'sequence': 10,
-    'license': 'GPL-3',
+    'license': 'LGPL-3',
     'author': 'Bemade',
     'website': 'https://www.bemade.org',
     'depends': [
