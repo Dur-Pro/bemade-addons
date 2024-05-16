@@ -13,7 +13,7 @@
     * Manage contact information of partners.
     """,
     'sequence': 10,
-    'license': 'GPL-3',
+    'license': 'AGPL-3',
     'author': 'Bemade',
     'website': 'https://www.bemade.org',
     'depends': ['base', 'contacts', 'sale_management', 'sale' , 'partner_multi_relation'],
