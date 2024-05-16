@@ -15,7 +15,7 @@
     'website': "https://www.bemade.org",
     'category': 'Technical',
     'version': '0.1',
-    'license': 'AGPL-3',
+    'license': 'LGPL-3',
     'depends': [
         'odoo_password_manager',
         'hr',
