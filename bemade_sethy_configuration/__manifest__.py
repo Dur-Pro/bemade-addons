@@ -8,7 +8,7 @@
     'author': 'Bemade',
     'website': 'https://bemade.org',
     'email': 'it@bemade.org',
-    'license': 'GPL-3',
+    'license': 'AGPL-3',
     'depends': [
         # List of module dependencies
         'base',
