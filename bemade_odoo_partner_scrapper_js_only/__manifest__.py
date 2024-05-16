@@ -12,7 +12,6 @@
     * Extracts partner name, website, and contact information.
     * Manage contact information of partners.
     """,
-    'sequence': 10,
     'license': 'GPL-3',
     'author': 'Bemade',
     'website': 'https://www.bemade.org',
