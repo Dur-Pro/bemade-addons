@@ -1,4 +1,3 @@
-#
 #    Bemade Inc.
 #
 #    Copyright (C) 2023-June Bemade Inc. (<https://www.bemade.org>).
@@ -8,22 +7,25 @@
 #    For details, visit https://www.gnu.org/licenses/lgpl-3.0.en.html
 
 {
-    'name': 'CalDAV Sync',
-    'version': '1.0',
-    'category': 'Calendar',
-    'summary': 'Synchronize Odoo Calendar with a CalDAV Server',
-    'description': """
-        This module allows Odoo to synchronize calendar events with a CalDAV server.
-    """,
-    'author': 'Your Name',
+    'name': 'CalDAV Synchronization',
+    'version': '17.0.0.2.0',
     'license': 'LGPL-3',
+    'category': 'Productivity',
+    'summary': 'Synchronize Odoo Calendar Events with CalDAV Servers',
+    'description': """
+        This module allows Odoo to synchronize calendar events with CalDAV servers.
+        Users can synchronize their Odoo calendar with external applications like
+        Apple Calendar or Thunderbird using CalDAV protocol.
+    """,
+    'author': 'Bemade Inc.',
+    'website': 'https://www.bemade.org',
     'depends': ['base', 'calendar'],
-    'external_dependencies': {
-        'python': ['caldav'],
-    },
     'data': [
+        'security/ir.model.access.csv',
+        'views/res_users_views.xml',
         'data/caldav_sync_data.xml',
     ],
     'installable': True,
     'application': True,
+    'auto_install': False,
 }
