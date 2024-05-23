@@ -27,7 +27,7 @@ class CalendarEvent(models.Model):
 
     def write(self, vals):
         res = super(CalendarEvent, self).write(vals)
-        if not self.env.context.get('caldav_no_sync'):
+        if not self.env.context.get('caldav_no_sync') and self.id:
             try:
                 _logger.debug(f"Updating event {self.name} in CalDAV")
                 self.sync_update_to_caldav()
