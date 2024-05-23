@@ -16,6 +16,7 @@
         This module allows Odoo to synchronize calendar events with a CalDAV server.
     """,
     'author': 'Your Name',
+    'license': 'LGPL-3',
     'depends': ['base', 'calendar'],
     'external_dependencies': {
         'python': ['caldav'],

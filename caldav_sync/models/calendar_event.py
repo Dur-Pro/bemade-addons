@@ -1,6 +1,7 @@
 from odoo import models, fields, api
 import caldav
 import logging
+from icalendar import Calendar, Event, vCalAddress, vText
 
 _logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ class CalendarEvent(models.Model):
     @api.model
     def create(self, values):
         event = super(CalendarEvent, self).create(values)
-        if event._is_caldav_enabled():
+        if event._is_caldav_enabled() and not self.env.context.get('skip_caldav_sync'):
             try:
                 event.sync_to_caldav()
             except Exception as e:
@@ -21,7 +22,7 @@ class CalendarEvent(models.Model):
 
     def write(self, values):
         result = super(CalendarEvent, self).write(values)
-        if self._is_caldav_enabled():
+        if self._is_caldav_enabled() and not self.env.context.get('skip_caldav_sync'):
             try:
                 self.sync_to_caldav()
             except Exception as e:
@@ -41,8 +42,11 @@ class CalendarEvent(models.Model):
             if event._is_caldav_enabled():
                 client = event._get_caldav_client()
                 calendar = client.principal().calendars()[0]  # Assuming the first calendar
-                vevent = calendar.add_event(event._get_icalendar())
-                event.caldav_uid = vevent.vobject_instance.vevent.uid.value
+                caldav_event = calendar.add_event(event._get_icalendar())
+                if caldav_event.id:
+                    event.with_context(skip_caldav_sync=True).write({'caldav_uid': caldav_event.id})
+                else:
+                    _logger.error(f"Failed to sync event to CalDAV: Event ID not returned")
 
     def remove_from_caldav(self):
         for event in self:
@@ -70,7 +74,7 @@ class CalendarEvent(models.Model):
                     current_uids = set(event.caldav_uid for event in self.search([('caldav_uid', '!=', False), ('create_uid', '=', user.id)]))
 
                     for event in events:
-                        ical = event.icalendar()
+                        ical = event.icalendar_instance
                         uid = ical.subcomponents[0]['UID']
                         current_uids.discard(uid)  # Remove from the set of current UIDs
                         self.sync_event_from_ical(ical, user)
@@ -117,18 +121,34 @@ class CalendarEvent(models.Model):
         return bool(user.caldav_server_url and user.caldav_username and user.caldav_password)
 
     def _get_icalendar(self):
-        vevent = f"""
-BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-UID:{self.caldav_uid}
-DTSTAMP:{self.start.strftime('%Y%m%dT%H%M%SZ')}
-DTSTART:{self.start.strftime('%Y%m%dT%H%M%SZ')}
-DTEND:{self.stop.strftime('%Y%m%dT%H%M%SZ')}
-SUMMARY:{self.name}
-DESCRIPTION:{self.description or ''}
-LOCATION:{self.location or ''}
-END:VEVENT
-END:VCALENDAR
-"""
-        return vevent
+        cal = Calendar()
+        cal.add('prodid', '-//Odoo//')
+        cal.add('version', '2.0')
+
+        event = Event()
+        event.add('summary', self.name)
+        event.add('dtstart', self.start)
+        event.add('dtend', self.stop)
+        event.add('dtstamp', self.create_date)
+        event.add('uid', self.caldav_uid)
+        event.add('description', self.description or '')
+        event.add('location', self.location or '')
+
+        # Add attendees
+        for attendee in self.attendee_ids:
+            vattendee = vCalAddress('MAILTO:%s' % attendee.email)
+            vattendee.params['cn'] = vText(attendee.partner_id.name)
+            vattendee.params['ROLE'] = vText('REQ-PARTICIPANT')
+            event.add('attendee', vattendee, encode=0)
+
+        # Add organizer
+        organizer = self.create_uid.partner_id
+        if organizer:
+            vorganizer = vCalAddress('MAILTO:%s' % organizer.email)
+            vorganizer.params['cn'] = vText(organizer.name)
+            vorganizer.params['ROLE'] = vText('CHAIR')
+            event['organizer'] = vorganizer
+
+        cal.add_component(event)
+
+        return cal.to_ical().decode('utf-8')
