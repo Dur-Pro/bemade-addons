@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="view_users_form_caldav_sync" model="ir.ui.view">
+        <field name="name">res.users.form.caldav.sync</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='preferences']" position="inside">
+                <group string="CalDAV Sync">
+                    <field name="caldav_server_url"/>
+                    <field name="caldav_username"/>
+                    <field name="caldav_password"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
