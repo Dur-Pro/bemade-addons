@@ -7,8 +7,8 @@ from datetime import datetime
 
 _logger = logging.getLogger(__name__)
 
-class CaldavController(http.Controller):
 
+class CaldavController(http.Controller):
     @http.route('/caldav_sync/sync', type='json', auth='user')
     def sync(self, **kwargs):
         # Fetch user credentials and server settings from Odoo
@@ -30,7 +30,8 @@ class CaldavController(http.Controller):
 
         return {'status': 'success', 'message': 'Synchronization completed'}
 
-    def sync_event(self, ical):
+    @staticmethod
+    def sync_event(ical):
         event = ical.subcomponents[0]
         uid = event['UID']
         start = event['DTSTART'].dt

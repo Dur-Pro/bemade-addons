@@ -17,6 +17,9 @@
     """,
     'author': 'Your Name',
     'depends': ['base', 'calendar'],
+    'external_dependencies': {
+        'python': ['caldav'],
+    },
     'data': [
         'data/caldav_sync_data.xml',
     ],
