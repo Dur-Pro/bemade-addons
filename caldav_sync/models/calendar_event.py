@@ -1,3 +1,4 @@
+
 from odoo import models, fields, api
 import caldav
 import logging
@@ -41,7 +42,7 @@ class CalendarEvent(models.Model):
         for event in self:
             if event._is_caldav_enabled():
                 client = event._get_caldav_client()
-                calendar = client.principal().calendars()[0]  # Assuming the first calendar
+                calendar = client.calendar(url=event._get_caldav_calendar_url())
                 caldav_event = calendar.add_event(event._get_icalendar())
                 if caldav_event.id:
                     event.with_context(skip_caldav_sync=True).write({'caldav_uid': caldav_event.id})
@@ -52,7 +53,7 @@ class CalendarEvent(models.Model):
         for event in self:
             if event.caldav_uid and event._is_caldav_enabled():
                 client = event._get_caldav_client()
-                calendar = client.principal().calendars()[0]  # Assuming the first calendar
+                calendar = client.calendar(url=event._get_caldav_calendar_url())
                 caldav_event = calendar.event_by_uid(event.caldav_uid)
                 if caldav_event:
                     caldav_event.delete()
@@ -67,7 +68,7 @@ class CalendarEvent(models.Model):
                 try:
                     _logger.info(f'Polling CalDAV server for user {user.name}...')
                     client = user._get_caldav_client()
-                    calendar = client.principal().calendars()[0]  # Assuming the first calendar
+                    calendar = client.calendar(url=user.caldav_calendar_id.url)
                     events = calendar.events()
 
                     # Collect all current CalDAV UIDs for this user
@@ -118,7 +119,11 @@ class CalendarEvent(models.Model):
 
     def _is_caldav_enabled(self):
         user = self.env.user
-        return bool(user.caldav_server_url and user.caldav_username and user.caldav_password)
+        return bool(user.caldav_server_url and user.caldav_username and user.caldav_password and user.caldav_calendar_id)
+
+    def _get_caldav_calendar_url(self):
+        user = self.env.user
+        return user.caldav_calendar_id.url
 
     def _get_icalendar(self):
         cal = Calendar()

@@ -1,9 +1,12 @@
+
 from odoo.tests.common import TransactionCase
 from unittest.mock import patch, MagicMock
 import caldav
 from icalendar import Calendar, Event
 from datetime import datetime
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class TestCaldavSync(TransactionCase):
 
@@ -17,17 +20,21 @@ class TestCaldavSync(TransactionCase):
             'caldav_password': 'password',
         })
         self.env = self.env(context=dict(self.env.context, no_reset_password=True))
+        self.calendar = self.env['caldav.calendar'].create({
+            'user_id': self.user.id,
+            'name': 'Test Calendar',
+            'url': 'http://testserver/caldav/calendars/testuser/calendar'
+        })
+        self.user.write({'caldav_calendar_id': self.calendar.id})
 
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent._get_caldav_client')
     def test_create_caldav_event(self, mock_get_caldav_client):
         mock_client = MagicMock()
-        mock_principal = MagicMock()
         mock_calendar = MagicMock()
         mock_event = MagicMock()
-        mock_event.id = 'test-uid-12345'
+        mock_event.id = 'test-uid-12345'  # Ensure the id attribute is correctly set
 
-        mock_client.principal.return_value = mock_principal
-        mock_principal.calendars.return_value = [mock_calendar]
+        mock_client.calendar.return_value = mock_calendar
         mock_calendar.add_event.return_value = mock_event
         mock_get_caldav_client.return_value = mock_client
 
@@ -47,13 +54,11 @@ class TestCaldavSync(TransactionCase):
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent.sync_to_caldav')
     def test_update_caldav_event(self, mock_sync_to_caldav, mock_get_caldav_client):
         mock_client = MagicMock()
-        mock_principal = MagicMock()
         mock_calendar = MagicMock()
         mock_event = MagicMock()
         mock_event.id = 'test-uid-12345'
 
-        mock_client.principal.return_value = mock_principal
-        mock_principal.calendars.return_value = [mock_calendar]
+        mock_client.calendar.return_value = mock_calendar
         mock_calendar.add_event.return_value = mock_event
         mock_get_caldav_client.return_value = mock_client
 
@@ -74,19 +79,17 @@ class TestCaldavSync(TransactionCase):
         self.assertEqual(mock_sync_to_caldav.call_count, 2)
 
         self.assertEqual(event.name, 'Updated Test Event')
-        self.assertEqual(event.start, datetime.strptime('2024-05-22 12:00:00', '%Y-%m-%d %H:%M:%S'))
+        self.assertEqual(event.start, datetime(2024, 5, 22, 12, 0))
 
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent._get_caldav_client')
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent.remove_from_caldav')
     def test_delete_caldav_event(self, mock_remove_from_caldav, mock_get_caldav_client):
         mock_client = MagicMock()
-        mock_principal = MagicMock()
         mock_calendar = MagicMock()
         mock_event = MagicMock()
         mock_event.id = 'test-uid-12345'
 
-        mock_client.principal.return_value = mock_principal
-        mock_principal.calendars.return_value = [mock_calendar]
+        mock_client.calendar.return_value = mock_calendar
         mock_calendar.add_event.return_value = mock_event
         mock_get_caldav_client.return_value = mock_client
 
@@ -107,17 +110,16 @@ class TestCaldavSync(TransactionCase):
         mock_sync_event_from_ical.return_value = None
         with patch('caldav.DAVClient') as MockClient:
             mock_client = MockClient.return_value
-            mock_principal = mock_client.principal.return_value
-            mock_calendar = mock_principal.calendars.return_value[0]
+            mock_calendar = mock_client.calendar.return_value
             mock_event = MagicMock()
 
             # Create a Calendar object and add an Event to it
             cal = Calendar()
             event = Event()
             event.add('uid', 'test-uid-12345')
-            event.add('dtstamp', datetime.strptime('20240522T100000Z', '%Y%m%dT%H%M%SZ'))
-            event.add('dtstart', datetime.strptime('20240522T100000Z', '%Y%m%dT%H%M%SZ'))
-            event.add('dtend', datetime.strptime('20240522T110000Z', '%Y%m%dT%H%M%SZ'))
+            event.add('dtstamp', datetime(2024, 5, 22, 10, 0, 0))
+            event.add('dtstart', datetime(2024, 5, 22, 10, 0, 0))
+            event.add('dtend', datetime(2024, 5, 22, 11, 0, 0))
             event.add('summary', 'Polled Event')
             event.add('description', 'This event was polled from CalDAV')
             event.add('location', 'Polled Location')
@@ -134,7 +136,8 @@ class TestCaldavSync(TransactionCase):
     def test_poll_caldav_server_with_exception(self, mock_logger):
         with patch('caldav.DAVClient') as MockClient:
             mock_client = MockClient.return_value
-            mock_client.principal.side_effect = Exception('Invalid credentials')
+            mock_client.calendar.side_effect = Exception('Invalid credentials')
 
             self.env['calendar.event'].poll_caldav_server()
             mock_logger.error.assert_any_call('Failed to poll CalDAV server for user Test User: Invalid credentials')
+
