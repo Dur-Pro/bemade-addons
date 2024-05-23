@@ -30,7 +30,7 @@ class CalendarEvent(models.Model):
         if not self.env.context.get('caldav_no_sync'):
             try:
                 _logger.debug(f"Updating event {self.name} in CalDAV")
-                self.with_context(caldav_no_sync=True).sync_update_to_caldav()
+                self.sync_update_to_caldav()
             except Exception as e:
                 _logger.error(f"Failed to update event in CalDAV server: {e}")
         return res
@@ -40,7 +40,7 @@ class CalendarEvent(models.Model):
             for event in self:
                 try:
                     _logger.debug(f"Removing event {event.name} from CalDAV")
-                    event.with_context(caldav_no_sync=True).sync_remove_from_caldav()
+                    event.sync_remove_from_caldav()
                 except Exception as e:
                     _logger.error(f"Failed to delete event from CalDAV server: {e}")
         return super(CalendarEvent, self).unlink()
@@ -95,7 +95,7 @@ class CalendarEvent(models.Model):
             if event.caldav_uid:
                 try:
                     _logger.debug(f"Removing CalDAV event {event.caldav_uid}")
-                    caldav_event = calendar.event_by_uid(event.caldav_uid)
+                    caldav_event = calendar.object_by_uid(event.caldav_uid)
                     caldav_event.delete()
                 except caldav.error.NotFoundError:
                     _logger.warning(f"CalDAV event {event.caldav_uid} not found on server.")

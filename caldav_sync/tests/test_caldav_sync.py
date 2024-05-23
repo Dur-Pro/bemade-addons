@@ -25,28 +25,40 @@ class TestCaldavSync(TransactionCase):
     def test_create_caldav_event(self, mock_get_caldav_client):
         mock_client = MagicMock()
         mock_calendar = MagicMock()
-        mock_event = MagicMock()
-        mock_event.id = 'test-uid-12345'  # Ensure the id attribute is correctly set
 
-        mock_client.calendar.return_value = mock_calendar
-        mock_calendar.add_event.return_value = mock_event
+        def add_event_side_effect(ical_event):
+            caldav_event = MagicMock()
+            cal = Calendar.from_ical(ical_event)
+            ical_event_instance = next(iter(cal.subcomponents))
+            caldav_event.vobject_instance.vevent.uid.value = ical_event_instance['UID']
+            return caldav_event
+
+        mock_calendar.add_event.side_effect = add_event_side_effect
         mock_get_caldav_client.return_value = mock_client
+        mock_client.calendar.return_value = mock_calendar
 
-        event = self.env['calendar.event'].with_user(self.user).create({
+        event_data = {
             'name': 'Test Event',
             'start': '2024-05-22 10:00:00',
             'stop': '2024-05-22 11:00:00',
-            'description': 'This is a test event',
+            'description': '<p>This is a test event</p>',
             'location': 'Test Location',
-            'create_uid': self.user.id,
-        })
+        }
 
-        self.assertEqual(event.name, 'Test Event')
-        self.assertEqual(event.caldav_uid, 'test-uid-12345')
+        event = self.env['calendar.event'].with_user(self.user).create(event_data)
+
+        cal = Calendar.from_ical(mock_calendar.add_event.call_args[0][0])
+        ical_event = next(iter(cal.subcomponents))
+
+        self.assertEqual(str(ical_event.get('summary')), event_data['name'])
+        self.assertEqual(str(ical_event.get('location')), event_data['location'])
+        self.assertEqual(ical_event.get('description'), event_data['description'])
+        self.assertIsNotNone(event.caldav_uid)
+        self.assertEqual(event.caldav_uid, ical_event['UID'])
 
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent._get_caldav_client')
-    @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent.sync_to_caldav')
-    def test_update_caldav_event(self, mock_sync_to_caldav, mock_get_caldav_client):
+    @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent.sync_update_to_caldav')
+    def test_update_caldav_event(self, mock_sync_update_to_caldav, mock_get_caldav_client):
         mock_client = MagicMock()
         mock_calendar = MagicMock()
         mock_event = MagicMock()
@@ -70,21 +82,19 @@ class TestCaldavSync(TransactionCase):
             'start': '2024-05-22 12:00:00',
             'stop': '2024-05-22 13:00:00',
         })
-        self.assertEqual(mock_sync_to_caldav.call_count, 2)
+        mock_sync_update_to_caldav.assert_called_once()
 
         self.assertEqual(event.name, 'Updated Test Event')
         self.assertEqual(event.start, datetime(2024, 5, 22, 12, 0))
 
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent._get_caldav_client')
-    @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent.remove_from_caldav')
-    def test_delete_caldav_event(self, mock_remove_from_caldav, mock_get_caldav_client):
+    def test_delete_caldav_event(self, mock_get_caldav_client):
         mock_client = MagicMock()
         mock_calendar = MagicMock()
         mock_event = MagicMock()
-        mock_event.id = 'test-uid-12345'
 
         mock_client.calendar.return_value = mock_calendar
-        mock_calendar.add_event.return_value = mock_event
+        mock_calendar.object_by_uid.return_value = mock_event
         mock_get_caldav_client.return_value = mock_client
 
         event = self.env['calendar.event'].with_user(self.user).create({
@@ -95,9 +105,11 @@ class TestCaldavSync(TransactionCase):
             'location': 'Test Location',
             'create_uid': self.user.id,
         })
-
+        uid = event.caldav_uid
         event.with_user(self.user).unlink()
-        mock_remove_from_caldav.assert_called()
+
+        mock_calendar.object_by_uid.assert_called_once_with(uid)
+        mock_event.delete.assert_called_once()
 
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent.sync_event_from_ical')
     def test_poll_caldav_server(self, mock_sync_event_from_ical):

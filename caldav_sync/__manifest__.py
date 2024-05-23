@@ -21,7 +21,6 @@
     'website': 'https://www.bemade.org',
     'depends': ['base', 'calendar'],
     'data': [
-        'security/ir.model.access.csv',
         'views/res_users_views.xml',
         'data/caldav_sync_data.xml',
     ],
