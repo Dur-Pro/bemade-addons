@@ -3,7 +3,9 @@ from odoo import models, api, fields
 import caldav
 import logging
 from datetime import datetime
-from icalendar import Calendar, Event
+from icalendar import Calendar, Event, vCalAddress, Alarm, vText
+from bs4 import BeautifulSoup
+import re
 
 _logger = logging.getLogger(__name__)
 
@@ -116,11 +118,25 @@ class CalendarEvent(models.Model):
             if event.name:
                 ical_event.add('summary', event.name)
             if event.description:
-                ical_event.add('description', event.description)
+                ical_event.add('description', self._html_to_text(event.description))
             if event.location:
                 ical_event.add('location', event.location)
+            if event.videocall_location:
+                ical_event.add('CONFERENCE', event.videocall_location)
+            for partner in event.partner_ids:
+                attendee = vCalAddress(f'MAILTO:{partner.email}')
+                attendee.params['cn'] = vText(partner.name)
+                attendee_record = self.env['calendar.attendee'].search([('event_id', '=', event.id), ('partner_id', '=', partner.id)], limit=1)
+                if attendee_record:
+                    attendee.params['partstat'] = vText(self._map_attendee_status(attendee_record.state))
+                ical_event.add('attendee', attendee, encode=0)
+            for alarm in event.alarm_ids:
+                ical_alarm = Alarm()
+                ical_alarm.add('trigger', alarm.trigger)
+                ical_alarm.add('action', 'DISPLAY')
+                ical_alarm.add('description', alarm.name or 'Reminder')
+                ical_event.add_component(ical_alarm)
             calendar.add_component(ical_event)
-
         return calendar.to_ical()
 
     @api.model
@@ -160,6 +176,8 @@ class CalendarEvent(models.Model):
                 event.with_context(caldav_no_sync=True).unlink()
 
     def sync_event_from_ical(self, ical_event):
+        email_regex = re.compile(r'[A-Za-z0-9\.\-+_]+@[A-Za-z0-9\.\-+_]+\.[A-Za-z]+')
+
         for component in ical_event.subcomponents:
             if isinstance(component, Event):
                 uid = str(component.get('uid'))
@@ -170,6 +188,24 @@ class CalendarEvent(models.Model):
                     start = start.replace(tzinfo=None)
                 if isinstance(stop, datetime):
                     stop = stop.replace(tzinfo=None)
+
+                attendees = component.get('attendee', [])
+                if isinstance(attendees, vCalAddress):
+                    attendees = [attendees]
+                elif isinstance(attendees, str):
+                    attendees = [vCalAddress(attendees)]
+
+                # Extract email addresses using regex
+                attendees_emails = [
+                    email_regex.search(str(attendee)).group(0).lower().strip()
+                    for attendee in attendees if email_regex.search(str(attendee))
+                ]
+
+                _logger.info(f"Attendees emails: {attendees_emails}")
+
+                # Search for Odoo partners with the extracted email addresses
+                attendee_ids = self.env['res.partner'].search([('email', 'in', attendees_emails)])
+
                 if not event:
                     _logger.info(f"Creating new event {str(component.get('summary'))} with UID {uid}")
                     self.with_context({'caldav_no_sync': True}).create({
@@ -179,13 +215,46 @@ class CalendarEvent(models.Model):
                         'description': str(component.get('description')),
                         'location': str(component.get('location')),
                         'caldav_uid': uid,
+                        'partner_ids': [(6, 0, attendee_ids.ids)],
                     })
                 else:
                     _logger.info(f"Updating existing event {event.name} with UID {uid}")
+
+                    # Get current partner_ids and merge with new attendees
+                    existing_partner_ids = set(event.partner_ids.ids)
+                    new_partner_ids = set(attendee_ids.ids)
+                    combined_partner_ids = list(existing_partner_ids.union(new_partner_ids))
+
                     event.with_context({'caldav_no_sync': True}).write({
                         'name': str(component.get('summary')),
                         'start': start,
                         'stop': stop,
                         'description': str(component.get('description')),
                         'location': str(component.get('location')),
+                        'partner_ids': [(6, 0, combined_partner_ids)],
                     })
+
+    @staticmethod
+    def _html_to_text(html):
+        return BeautifulSoup(html, "html.parser").getText()
+
+
+    @staticmethod
+    def _map_attendee_status(state):
+        mapping = {
+            'needsAction': 'NEEDS-ACTION',
+            'accepted': 'ACCEPTED',
+            'declined': 'DECLINED',
+            'tentative': 'TENTATIVE',
+        }
+        return mapping.get(state, 'NEEDS-ACTION')
+
+    @staticmethod
+    def _map_ical_status(ical_status):
+        mapping = {
+            'NEEDS-ACTION': 'needsAction',
+            'ACCEPTED': 'accepted',
+            'DECLINED': 'declined',
+            'TENTATIVE': 'tentative',
+        }
+        return mapping.get(ical_status, 'needsAction')
