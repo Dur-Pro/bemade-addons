@@ -8,17 +8,15 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Calendar">
                     <group string="CalDAV">
-                        <field name="caldav_server_url"/>
+                        <field name="caldav_calendar_url"/>
                         <field name="caldav_username"/>
                         <field name="caldav_password"/>
-                        <button name="fetch_caldav_calendars" type="object" string="Fetch Calendars"/>
-                        <field name="caldav_calendar_id"/>
                     </group>
                 </page>
             </xpath>
         </field>
     </record>
-    <record id="view_users_preferences_form" model="ir.ui.view">
+    <record id="view_users_form" model="ir.ui.view">
         <field name="name">res.users.form</field>
         <field name="model">res.users</field>
         <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
@@ -26,11 +24,9 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Calendar">
                     <group string="CalDAV">
-                        <field name="caldav_server_url"/>
+                        <field name="caldav_calendar_url"/>
                         <field name="caldav_username"/>
                         <field name="caldav_password"/>
-                        <button name="fetch_caldav_calendars" type="object" string="Fetch Calendars"/>
-                        <field name="caldav_calendar_id"/>
                     </group>
                 </page>
             </xpath>

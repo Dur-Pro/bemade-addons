@@ -1,3 +1,4 @@
+
 CalDAV Synchronization
 ======================
 
@@ -20,20 +21,18 @@ Features
 - Synchronize Odoo calendar events with CalDAV servers.
 - Create, update, and delete events in Odoo and reflect changes on the CalDAV server.
 - Poll CalDAV server for changes and update Odoo calendar accordingly.
-- Allow users to select which calendar to synchronize with on the CalDAV server.
 
 Configuration
 -------------
 
 1. Install the module in Odoo.
 2. Go to the User settings in Odoo.
-3. Enter the CalDAV server URL, username, and password.
-4. Fetch the available calendars from the CalDAV server and select the one to synchronize with.
+3. Enter the CalDAV calendar URL, username, and password.
 
 Usage
 -----
 
-1. Create a calendar event in Odoo and it will be synchronized with the selected CalDAV calendar.
+1. Create a calendar event in Odoo and it will be synchronized with the CalDAV calendar.
 2. Update the event in Odoo and the changes will reflect on the CalDAV server.
 3. Delete the event in Odoo and it will be removed from the CalDAV server.
 4. Changes made to the calendar on the CalDAV server will be polled and updated in Odoo.

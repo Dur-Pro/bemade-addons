@@ -1,4 +1,3 @@
-
 from odoo.tests.common import TransactionCase
 from unittest.mock import patch, MagicMock
 import caldav
@@ -8,6 +7,7 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+
 class TestCaldavSync(TransactionCase):
 
     def setUp(self):
@@ -15,17 +15,11 @@ class TestCaldavSync(TransactionCase):
         self.user = self.env['res.users'].create({
             'name': 'Test User',
             'login': 'testuser',
-            'caldav_server_url': 'http://testserver/caldav',
+            'caldav_calendar_url': 'http://test.calendar.url',
             'caldav_username': 'testuser',
             'caldav_password': 'password',
         })
         self.env = self.env(context=dict(self.env.context, no_reset_password=True))
-        self.calendar = self.env['caldav.calendar'].create({
-            'user_id': self.user.id,
-            'name': 'Test Calendar',
-            'url': 'http://testserver/caldav/calendars/testuser/calendar'
-        })
-        self.user.write({'caldav_calendar_id': self.calendar.id})
 
     @patch('odoo.addons.caldav_sync.models.calendar_event.CalendarEvent._get_caldav_client')
     def test_create_caldav_event(self, mock_get_caldav_client):
@@ -140,4 +134,3 @@ class TestCaldavSync(TransactionCase):
 
             self.env['calendar.event'].poll_caldav_server()
             mock_logger.error.assert_any_call('Failed to poll CalDAV server for user Test User: Invalid credentials')
-
