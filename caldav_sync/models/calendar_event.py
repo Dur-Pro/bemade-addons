@@ -5,14 +5,37 @@ import logging
 from datetime import datetime
 from icalendar import Calendar, Event, vCalAddress, Alarm, vText
 from bs4 import BeautifulSoup
+from dateutil.rrule import rrulestr
+from datetime import timedelta
 import re
 
 _logger = logging.getLogger(__name__)
+
+
+def _parse_rrule_string(rrule_str):
+    def try_to_int(part):
+        try:
+            return int(part)
+        except Exception:
+            return part
+
+    regex_str = "RRULE:(.*)$"
+    regex = re.compile(regex_str)
+    params_match = regex.search(rrule_str)
+    params_part = params_match.groups()[0]
+    params = params_part.split(';')
+    params_dict = {}
+    for param in params:
+        parts = param.split('=')
+        params_dict.update({parts[0]: try_to_int(parts[1])})
+    return params_dict
+
 
 class CalendarEvent(models.Model):
     _inherit = 'calendar.event'
 
     caldav_uid = fields.Char(string='CalDAV UID', readonly=True)
+    caldav_recurrence_id = fields.Char(string='CalDAV Recurrence ID', readonly=True)
 
     @api.model
     def create(self, vals):
@@ -48,8 +71,7 @@ class CalendarEvent(models.Model):
         return super(CalendarEvent, self).unlink()
 
     def _is_caldav_enabled(self):
-        user = self.env.user
-        return all([user.caldav_calendar_url, user.caldav_username, user.caldav_password])
+        return self.env.user.is_caldav_enabled()
 
     def _get_caldav_client(self):
         user = self.env.user
@@ -113,41 +135,34 @@ class CalendarEvent(models.Model):
             ical_event = Event()
             ical_event.add('uid', event.caldav_uid)
             ical_event.add('dtstamp', event.write_date.replace(tzinfo=None))
-            ical_event.add('dtstart', event.start.replace(tzinfo=None))
-            ical_event.add('dtend', event.stop.replace(tzinfo=None))
             if event.name:
                 ical_event.add('summary', event.name)
             if event.description:
-                ical_event.add('description', self._html_to_text(event.description))
+                ical_event.add('description', event.description)
             if event.location:
                 ical_event.add('location', event.location)
-            if event.videocall_location:
-                ical_event.add('CONFERENCE', event.videocall_location)
-            for partner in event.partner_ids:
-                attendee = vCalAddress(f'MAILTO:{partner.email}')
-                attendee.params['cn'] = vText(partner.name)
-                attendee_record = self.env['calendar.attendee'].search([('event_id', '=', event.id), ('partner_id', '=', partner.id)], limit=1)
-                if attendee_record:
-                    attendee.params['partstat'] = vText(self._map_attendee_status(attendee_record.state))
-                ical_event.add('attendee', attendee, encode=0)
-            for alarm in event.alarm_ids:
-                ical_alarm = Alarm()
-                ical_alarm.add('trigger', alarm.trigger)
-                ical_alarm.add('action', 'DISPLAY')
-                ical_alarm.add('description', alarm.name or 'Reminder')
-                ical_event.add_component(ical_alarm)
+
+            # Add RRULE if the event is recurrent
+            if event.recurrency and event.recurrence_id:
+                rrule = event.recurrence_id._get_rrule()
+                rrule_dict = _parse_rrule_string(str(rrule))
+                ical_event.add('rrule', rrule_dict)
+
+            # Add DTSTART and DTEND
+            ical_event.add('dtstart', event.start.replace(tzinfo=None))
+            ical_event.add('dtend', event.stop.replace(tzinfo=None))
+
             calendar.add_component(ical_event)
+
         return calendar.to_ical()
 
     @api.model
     def poll_caldav_server(self):
-        users = self.env['res.users'].search([('caldav_calendar_url', '!=', False)])
-        for user in users:
-            try:
-                self.with_user(user).poll_user_caldav_server()
-            except Exception as e:
-                _logger.error(f"Failed to poll CalDAV server for user {user.name}: {e}")
+        all_users = self.env['res.users'].search([]).filtered(lambda u: u.is_caldav_enabled())
+        for user in all_users:
+            self.with_user(user).poll_user_caldav_server()
 
+    @api.model
     def poll_user_caldav_server(self):
         if not self._is_caldav_enabled():
             return
@@ -155,6 +170,8 @@ class CalendarEvent(models.Model):
         calendar = client.calendar(url=self.env.user.caldav_calendar_url)
         events = calendar.events()
         caldav_uids = set()
+        now = datetime.now()
+        one_year_later = now + timedelta(days=365)
 
         _logger.info(f"Polling CalDAV server for user {self.env.user.name}")
 
@@ -164,38 +181,51 @@ class CalendarEvent(models.Model):
             for component in ical_event.subcomponents:
                 if isinstance(component, Event):
                     uid = str(component.get('uid'))
-                    caldav_uids.add(uid)
+                    rrule = component.get('rrule')
+                    if rrule:
+                        dtstart = component.decoded('dtstart')
+                        if dtstart.tzinfo is not None:
+                            dtstart = dtstart.replace(tzinfo=None)
+                        rrule_str = rrule.to_ical().decode('utf-8')
+                        rrule = rrulestr(rrule_str, dtstart=dtstart)
+                        instances = list(rrule.between(now, one_year_later))
+                        for instance_start in instances:
+                            recurrence_id = instance_start.strftime('%Y%m%dT%H%M%S')
+                            instance_uid = f"{uid}-{recurrence_id}"
+                            caldav_uids.add(instance_uid)
+                    else:
+                        caldav_uids.add(uid)
 
         _logger.info(f"CalDAV UIDs fetched: {caldav_uids}")
 
         # Remove Odoo events that no longer exist on the CalDAV server
         odoo_events = self.search([('caldav_uid', '!=', False)])
         for event in odoo_events:
-            if event.caldav_uid not in caldav_uids:
+            if event.caldav_recurrence_id:
+                if event.caldav_recurrence_id not in caldav_uids:
+                    _logger.info(f"Deleting orphan event {event.name} with Recurrence ID {event.caldav_recurrence_id}")
+                    event.with_context(caldav_no_sync=True).unlink()
+            elif event.caldav_uid not in caldav_uids:
                 _logger.info(f"Deleting orphan event {event.name} with UID {event.caldav_uid}")
                 event.with_context(caldav_no_sync=True).unlink()
 
     def sync_event_from_ical(self, ical_event):
-        email_regex = re.compile(r'[A-Za-z0-9\.\-+_]+@[A-Za-z0-9\.\-+_]+\.[A-Za-z]+')
+        email_regex = re.compile(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+')
+        now = datetime.now()
+        one_year_later = now + timedelta(days=365)
+        current_user_email = self.env.user.email.lower()
 
         for component in ical_event.subcomponents:
             if isinstance(component, Event):
                 uid = str(component.get('uid'))
-                event = self.search([('caldav_uid', '=', uid)], limit=1)
-                start = component.decoded('dtstart')
-                stop = component.decoded('dtend')
-                if isinstance(start, datetime):
-                    start = start.replace(tzinfo=None)
-                if isinstance(stop, datetime):
-                    stop = stop.replace(tzinfo=None)
-
+                rrule = component.get('rrule')
                 attendees = component.get('attendee', [])
+
                 if isinstance(attendees, vCalAddress):
                     attendees = [attendees]
                 elif isinstance(attendees, str):
                     attendees = [vCalAddress(attendees)]
 
-                # Extract email addresses using regex
                 attendees_emails = [
                     email_regex.search(str(attendee)).group(0).lower().strip()
                     for attendee in attendees if email_regex.search(str(attendee))
@@ -203,41 +233,93 @@ class CalendarEvent(models.Model):
 
                 _logger.info(f"Attendees emails: {attendees_emails}")
 
-                # Search for Odoo partners with the extracted email addresses
+                # Add current user email to attendees if not already present
+                if current_user_email not in attendees_emails:
+                    attendees_emails.append(current_user_email)
+
                 attendee_ids = self.env['res.partner'].search([('email', 'in', attendees_emails)])
 
-                if not event:
-                    _logger.info(f"Creating new event {str(component.get('summary'))} with UID {uid}")
-                    self.with_context({'caldav_no_sync': True}).create({
-                        'name': str(component.get('summary')),
-                        'start': start,
-                        'stop': stop,
-                        'description': str(component.get('description')),
-                        'location': str(component.get('location')),
-                        'caldav_uid': uid,
-                        'partner_ids': [(6, 0, attendee_ids.ids)],
-                    })
+                if rrule:
+                    dtstart = component.decoded('dtstart')
+                    dtend = component.decoded('dtend')
+                    # Convert to naive datetime
+                    if dtstart.tzinfo:
+                        dtstart = dtstart.replace(tzinfo=None)
+                    if dtend.tzinfo:
+                        dtend = dtend.replace(tzinfo=None)
+                    rrule_str = rrule.to_ical().decode('utf-8')
+                    rrule = rrulestr(rrule_str, dtstart=dtstart)
+                    instances = list(rrule.between(now, one_year_later))
+
+                    for instance_start in instances:
+                        instance_stop = instance_start + (dtend - dtstart)
+                        recurrence_id = instance_start.strftime('%Y%m%dT%H%M%S')
+                        instance_uid = f"{uid}-{recurrence_id}"
+                        existing_instance = self.search([('caldav_recurrence_id', '=', instance_uid)], limit=1)
+
+                        _logger.info(f"Processing instance UID: {instance_uid}")
+                        _logger.info(f"Instance start: {instance_start}, stop: {instance_stop}")
+
+                        if not existing_instance:
+                            _logger.info(f"Creating new recurring event instance with UID {instance_uid}")
+                            self.with_context({'caldav_no_sync': True}).create({
+                                'name': str(component.get('summary')),
+                                'start': instance_start,
+                                'stop': instance_stop,
+                                'description': str(component.get('description')),
+                                'location': str(component.get('location')),
+                                'caldav_uid': uid,
+                                'caldav_recurrence_id': instance_uid,
+                                'partner_ids': [(6, 0, attendee_ids.ids)],
+                            })
+                        else:
+                            _logger.info(f"Updating existing recurring event instance with UID {instance_uid}")
+                            existing_instance.with_context({'caldav_no_sync': True}).write({
+                                'name': str(component.get('summary')),
+                                'start': instance_start,
+                                'stop': instance_stop,
+                                'description': str(component.get('description')),
+                                'location': str(component.get('location')),
+                                'partner_ids': [(6, 0, attendee_ids.ids)],
+                            })
                 else:
-                    _logger.info(f"Updating existing event {event.name} with UID {uid}")
+                    start = component.decoded('dtstart')
+                    stop = component.decoded('dtend')
+                    if isinstance(start, datetime):
+                        start = start.replace(tzinfo=None)
+                    if isinstance(stop, datetime):
+                        stop = stop.replace(tzinfo=None)
+                    event = self.search([('caldav_uid', '=', uid)], limit=1)
+                    if not event:
+                        _logger.info(f"Creating new event {str(component.get('summary'))} with UID {uid}")
+                        self.with_context({'caldav_no_sync': True}).create({
+                            'name': str(component.get('summary')),
+                            'start': start,
+                            'stop': stop,
+                            'description': str(component.get('description')),
+                            'location': str(component.get('location')),
+                            'caldav_uid': uid,
+                            'partner_ids': [(6, 0, attendee_ids.ids)],
+                        })
+                    else:
+                        _logger.info(f"Updating existing event {event.name} with UID {uid}")
 
-                    # Get current partner_ids and merge with new attendees
-                    existing_partner_ids = set(event.partner_ids.ids)
-                    new_partner_ids = set(attendee_ids.ids)
-                    combined_partner_ids = list(existing_partner_ids.union(new_partner_ids))
+                        existing_partner_ids = set(event.partner_ids.ids)
+                        new_partner_ids = set(attendee_ids.ids)
+                        combined_partner_ids = list(existing_partner_ids.union(new_partner_ids))
 
-                    event.with_context({'caldav_no_sync': True}).write({
-                        'name': str(component.get('summary')),
-                        'start': start,
-                        'stop': stop,
-                        'description': str(component.get('description')),
-                        'location': str(component.get('location')),
-                        'partner_ids': [(6, 0, combined_partner_ids)],
-                    })
+                        event.with_context({'caldav_no_sync': True}).write({
+                            'name': str(component.get('summary')),
+                            'start': start,
+                            'stop': stop,
+                            'description': str(component.get('description')),
+                            'location': str(component.get('location')),
+                            'partner_ids': [(6, 0, combined_partner_ids)],
+                        })
 
     @staticmethod
     def _html_to_text(html):
         return BeautifulSoup(html, "html.parser").getText()
-
 
     @staticmethod
     def _map_attendee_status(state):
