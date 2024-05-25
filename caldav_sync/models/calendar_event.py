@@ -3,13 +3,23 @@ from odoo import models, api, fields
 import caldav
 import logging
 from datetime import datetime
-from icalendar import Calendar, Event, vCalAddress, Alarm, vText
+from icalendar import Calendar, Event, vCalAddress, Alarm, vText, vWeekday
 from bs4 import BeautifulSoup
-from dateutil.rrule import rrulestr
 from datetime import timedelta
+import dateutil
 import re
 
 _logger = logging.getLogger(__name__)
+
+WEEKDAY_MAP = {
+    0: "MO",
+    1: "TU",
+    2: "WE",
+    3: "TH",
+    4: "FR",
+    5: "SA",
+    6: "SU",
+}
 
 
 def _parse_rrule_string(rrule_str):
@@ -249,14 +259,17 @@ class CalendarEvent(models.Model):
             'byday': rrule_params.get('byday'),
             'until': rrule_params.get('until'),
         }
+
         if rrule_params.get('weekday'):
             vals.update(rrule_params.get('weekday'))
+        day_list = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
+        vals.update({day: rrule_params.get(day) for day in day_list if day in rrule_params})
+
         return vals
 
     def sync_event_from_ical(self, ical_event):
         email_regex = re.compile(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+')
         now = datetime.now()
-        one_year_later = now + timedelta(days=365)
         current_user_email = self.env.user.email.lower()
 
         for component in ical_event.subcomponents:
