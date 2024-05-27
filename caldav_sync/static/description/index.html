@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalDAV Synchronization</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #b48a1d; /* Gold color */
+        }
+        p, ul {
+            color: #000000; /* Black color */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CalDAV Synchronization</h1>
+        <img src="images/main_screenshot.png"/>
+        <p><strong>Author:</strong> Bemade Inc. (Marc Durepos)</p>
+        <p><strong>Website:</strong> <a href="https://www.bemade.org">www.bemade.org</a></p>
+        <p><strong>License:</strong> GNU Lesser General Public License (LGPL-3)</p>
+        <h2>Overview</h2>
+        <p>The CalDAV Synchronization module for Odoo allows users to synchronize their calendar events with CalDAV servers. This enables seamless integration of Odoo calendar with external applications like Apple Calendar or Thunderbird.</p>
+        <h2>Features</h2>
+        <ul>
+            <li>Synchronize Odoo calendar events with CalDAV servers.</li>
+            <li>Create, update, and delete events in Odoo and reflect changes on the CalDAV server.</li>
+            <li>Poll CalDAV server for changes and update Odoo calendar accordingly.</li>
+        </ul>
+        <h2>Configuration</h2>
+        <ol>
+            <li>Install the module in Odoo.</li>
+            <li>Go to the User settings in Odoo.</li>
+            <li>Enter the CalDAV calendar URL, username, and password on the user settings.</li>
+        </ol>
+        <h2>Usage</h2>
+        <ol>
+            <li>Create a calendar event in Odoo and it will be synchronized with the CalDAV calendar.</li>
+            <li>Update the event in Odoo and the changes will reflect on the CalDAV server.</li>
+            <li>Delete the event in Odoo and it will be removed from the CalDAV server.</li>
+            <li>Changes made to the calendar on the CalDAV server will be polled and updated in Odoo.</li>
+        </ol>
+        <h2>Technical Details</h2>
+        <p>The module extends the <code>calendar.event</code> model to add CalDAV synchronization functionality. It uses the <code>icalendar</code> library to format events and the <code>caldav</code> library to interact with CalDAV servers. Polling for changes on the CalDAV server can be triggered manually by triggering the scheduled action in Odoo.</p>
+    </div>
+</body>
+</html>
