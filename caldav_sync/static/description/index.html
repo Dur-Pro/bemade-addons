@@ -4,30 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CalDAV Synchronization</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             line-height: 1.6;
-        }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        h1 {
+            background-color: #000000; /* Black background */
             color: #b48a1d; /* Gold color */
         }
-        p, ul {
-            color: #000000; /* Black color */
+        .container {
+            margin-top: 20px;
+        }
+        h1, h2 {
+            color: #b48a1d; /* Gold color */
+        }
+        p, ul, ol {
+            color: #ffffff; /* White color for better readability on black background */
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>CalDAV Synchronization</h1>
-        <img src="images/main_screenshot.png"/>
+        <h1 class="text-center">CalDAV Synchronization</h1>
+        <img src="images/main_screenshot.png" class="img-fluid my-4" alt="Main Screenshot">
         <p><strong>Author:</strong> Bemade Inc. (Marc Durepos)</p>
-        <p><strong>Website:</strong> <a href="https://www.bemade.org">www.bemade.org</a></p>
+        <p><strong>Website:</strong> <a href="https://www.bemade.org" class="text-warning">www.bemade.org</a></p>
         <p><strong>License:</strong> GNU Lesser General Public License (LGPL-3)</p>
         <h2>Overview</h2>
         <p>The CalDAV Synchronization module for Odoo allows users to synchronize their calendar events with CalDAV servers. This enables seamless integration of Odoo calendar with external applications like Apple Calendar or Thunderbird.</p>
@@ -53,5 +54,8 @@
         <h2>Technical Details</h2>
         <p>The module extends the <code>calendar.event</code> model to add CalDAV synchronization functionality. It uses the <code>icalendar</code> library to format events and the <code>caldav</code> library to interact with CalDAV servers. Polling for changes on the CalDAV server can be triggered manually by triggering the scheduled action in Odoo.</p>
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
