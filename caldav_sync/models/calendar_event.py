@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from datetime import timedelta
 import dateutil
 import re
-from pytz import timezone
+from pytz import timezone, utc
 
 _logger = logging.getLogger(__name__)
 
@@ -149,7 +149,7 @@ class CalendarEvent(models.Model):
                 user_tz = timezone(event.user_id.tz)
             ical_event = Event()
             ical_event.add('uid', event.caldav_uid)
-            ical_event.add('dtstamp', event.write_date.astimezone(user_tz))
+            ical_event.add('dtstamp', utc.localize(event.write_date).astimezone(user_tz))
             if event.name:
                 ical_event.add('summary', event.name)
             if self._html_to_text(event.description):
@@ -172,8 +172,8 @@ class CalendarEvent(models.Model):
                 ical_event.add('rrule', rrule_dict)
 
             # Add DTSTART and DTEND
-            ical_event.add('dtstart', event.start.astimezone(user_tz))
-            ical_event.add('dtend', event.stop.astimezone(user_tz))
+            ical_event.add('dtstart', utc.localize(event.start).astimezone(user_tz))
+            ical_event.add('dtend', utc.localize(event.stop).astimezone(user_tz))
 
             calendar.add_component(ical_event)
 
@@ -281,11 +281,7 @@ class CalendarEvent(models.Model):
 
     def sync_event_from_ical(self, ical_event):
         email_regex = re.compile(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+')
-        now = datetime.now()
         current_user_email = self.env.user.email.lower()
-        user_tz = timezone('UTC')
-        if self.env.user.tz:
-            user_tz = timezone(self.env.user.tz)
 
         for component in ical_event.subcomponents:
             if isinstance(component, Event):
@@ -315,10 +311,10 @@ class CalendarEvent(models.Model):
                 existing_instance = self._get_existing_instance(uid, recurrence_id)
                 start = component.decoded('dtstart')
                 if isinstance(start, datetime):
-                    start = start.astimezone(user_tz).replace(tzinfo=None)
+                    start = start.astimezone(utc).replace(tzinfo=None)
                 end = component.decoded('dtend')
                 if isinstance(end, datetime):
-                    end = end.astimezone(user_tz).replace(tzinfo=None)
+                    end = end.astimezone(utc).replace(tzinfo=None)
 
                 values = {
                     'name': str(component.get('summary')),
@@ -344,11 +340,11 @@ class CalendarEvent(models.Model):
                             'follow_recurrence': True,
                         })
                     existing_instance.with_context({'caldav_no_sync': True}).write(values)
+
     @staticmethod
     def _extract_component_text(component, subcomponent_name):
         text = str(component.get(subcomponent_name))
         text = text if text != 'None' else ''
-
 
     @staticmethod
     def _html_to_text(html):
