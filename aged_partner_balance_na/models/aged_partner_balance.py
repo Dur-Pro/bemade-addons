@@ -55,12 +55,12 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
 
         date_to = fields.Date.from_string(options['date']['date_to'])
         periods = [
-            (False, fields.Date.to_string(date_to)),
             (date_to, plus_days(date_to, 29)),
             (plus_days(date_to, 30), plus_days(date_to, 59)),
             (plus_days(date_to, 60), plus_days(date_to, 89)),
             (plus_days(date_to, 90), plus_days(date_to, 119)),
-            (plus_days(date_to, 120), False),
+            (plus_days(date_to, 120), plus_days(date_to, 159)),
+            (plus_days(date_to, 160), False),
         ]
 
         def build_result_dict(report, query_res_lines):
