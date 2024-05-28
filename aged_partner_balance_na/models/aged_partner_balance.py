@@ -51,10 +51,14 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
         report._check_groupby_fields((next_groupby.split(',') if next_groupby else []) + ([current_groupby] if current_groupby else []))
 
         def plus_days(date_obj, days):
+            return fields.Date.to_string(date_obj + relativedelta(days=days))
+
+        def minus_days(date_obj, days):
             return fields.Date.to_string(date_obj - relativedelta(days=days))
 
         date_to = fields.Date.from_string(options['date']['date_to'])
         periods = [
+            (False, minus_days(date_to, 1))
             (date_to, plus_days(date_to, 29)),
             (plus_days(date_to, 30), plus_days(date_to, 59)),
             (plus_days(date_to, 60), plus_days(date_to, 89)),
