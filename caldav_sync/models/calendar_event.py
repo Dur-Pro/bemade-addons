@@ -2,12 +2,13 @@ import uuid
 from odoo import models, api, fields
 import caldav
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from icalendar import Calendar, Event, vCalAddress, vText, vWeekday
 from bs4 import BeautifulSoup
 from datetime import timedelta
 import dateutil
 import re
+from pytz import timezone
 
 _logger = logging.getLogger(__name__)
 
@@ -143,9 +144,12 @@ class CalendarEvent(models.Model):
         calendar.add('version', '2.0')
 
         for event in self:
+            user_tz = timezone('UTC')
+            if event.user_id.tz:
+                user_tz = timezone(event.user_id.tz)
             ical_event = Event()
             ical_event.add('uid', event.caldav_uid)
-            ical_event.add('dtstamp', event.write_date.replace(tzinfo=None))
+            ical_event.add('dtstamp', event.write_date.astimezone(user_tz))
             if event.name:
                 ical_event.add('summary', event.name)
             if self.html_to_text(event.description):
@@ -168,8 +172,8 @@ class CalendarEvent(models.Model):
                 ical_event.add('rrule', rrule_dict)
 
             # Add DTSTART and DTEND
-            ical_event.add('dtstart', event.start.replace(tzinfo=None))
-            ical_event.add('dtend', event.stop.replace(tzinfo=None))
+            ical_event.add('dtstart', event.start)
+            ical_event.add('dtend', event.stop)
 
             calendar.add_component(ical_event)
 
@@ -279,6 +283,9 @@ class CalendarEvent(models.Model):
         email_regex = re.compile(r'[a-z0-9\.\-+_]+@[a-z0-9\.\-+_]+\.[a-z]+')
         now = datetime.now()
         current_user_email = self.env.user.email.lower()
+        user_tz = timezone('UTC')
+        if self.env.user.tz:
+            user_tz = timezone(self.env.user.tz)
 
         for component in ical_event.subcomponents:
             if isinstance(component, Event):
@@ -308,10 +315,10 @@ class CalendarEvent(models.Model):
                 existing_instance = self._get_existing_instance(uid, recurrence_id)
                 start = component.decoded('dtstart')
                 if isinstance(start, datetime):
-                    start = start.replace(tzinfo=None)
+                    start = start.astimezone(user_tz).replace(tzinfo=None)
                 end = component.decoded('dtend')
                 if isinstance(end, datetime):
-                    end = end.replace(tzinfo=None)
+                    end = end.astimezone(user_tz).replace(tzinfo=None)
 
                 values = {
                     'name': str(component.get('summary')),
