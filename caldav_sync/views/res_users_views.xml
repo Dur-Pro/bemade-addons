@@ -10,7 +10,7 @@
                     <group string="CalDAV">
                         <field name="caldav_calendar_url"/>
                         <field name="caldav_username"/>
-                        <field name="caldav_password"/>
+                        <field name="caldav_password" password="True"/>
                     </group>
                 </page>
             </xpath>
@@ -26,7 +26,7 @@
                     <group string="CalDAV">
                         <field name="caldav_calendar_url"/>
                         <field name="caldav_username"/>
-                        <field name="caldav_password"/>
+                        <field name="caldav_password" password="True"/>
                     </group>
                 </page>
             </xpath>
