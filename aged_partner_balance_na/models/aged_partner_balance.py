@@ -63,8 +63,7 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
             (plus_days(date_to, 30), plus_days(date_to, 59)),
             (plus_days(date_to, 60), plus_days(date_to, 89)),
             (plus_days(date_to, 90), plus_days(date_to, 119)),
-            (plus_days(date_to, 120), plus_days(date_to, 159)),
-            (plus_days(date_to, 160), False),
+            (plus_days(date_to, 120), False),
         ]
 
         def build_result_dict(report, query_res_lines):
