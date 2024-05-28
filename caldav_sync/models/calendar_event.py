@@ -3,7 +3,7 @@ from odoo import models, api, fields
 import caldav
 import logging
 from datetime import datetime
-from icalendar import Calendar, Event, vCalAddress, Alarm, vText, vWeekday
+from icalendar import Calendar, Event, vCalAddress, vText, vWeekday
 from bs4 import BeautifulSoup
 from datetime import timedelta
 import dateutil
@@ -161,12 +161,6 @@ class CalendarEvent(models.Model):
                 if attendee_record:
                     attendee.params['partstat'] = vText(self._map_attendee_status(attendee_record.state))
                 ical_event.add('attendee', attendee, encode=0)
-            for alarm in event.alarm_ids:
-                ical_alarm = Alarm()
-                ical_alarm.add('trigger', alarm.trigger)
-                ical_alarm.add('action', 'DISPLAY')
-                ical_alarm.add('description', alarm.name or 'Reminder')
-                ical_event.add_component(ical_alarm)
             # Add RRULE if the event is recurrent
             if event.recurrency and event.recurrence_id:
                 rrule = event.recurrence_id._get_rrule()
