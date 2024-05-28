@@ -152,7 +152,21 @@ class CalendarEvent(models.Model):
                 ical_event.add('description', event.description)
             if event.location:
                 ical_event.add('location', event.location)
-
+            if event.videocall_location:
+                ical_event.add('CONFERENCE', event.videocall_location)
+            for partner in event.partner_ids:
+                attendee = vCalAddress(f'MAILTO:{partner.email}')
+                attendee.params['cn'] = vText(partner.name)
+                attendee_record = self.env['calendar.attendee'].search([('event_id', '=', event.id), ('partner_id', '=', partner.id)], limit=1)
+                if attendee_record:
+                    attendee.params['partstat'] = vText(self._map_attendee_status(attendee_record.state))
+                ical_event.add('attendee', attendee, encode=0)
+            for alarm in event.alarm_ids:
+                ical_alarm = Alarm()
+                ical_alarm.add('trigger', alarm.trigger)
+                ical_alarm.add('action', 'DISPLAY')
+                ical_alarm.add('description', alarm.name or 'Reminder')
+                ical_event.add_component(ical_alarm)
             # Add RRULE if the event is recurrent
             if event.recurrency and event.recurrence_id:
                 rrule = event.recurrence_id._get_rrule()
@@ -310,6 +324,7 @@ class CalendarEvent(models.Model):
                     'stop': end,
                     'description': str(component.get('description')),
                     'location': str(component.get('location')),
+                    'videocall_location': str(component.get('conference')),
                     'caldav_uid': uid,
                     'partner_ids': [(6, 0, attendee_ids.ids)],
                 }
