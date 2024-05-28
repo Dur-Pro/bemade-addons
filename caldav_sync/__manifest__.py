@@ -8,7 +8,7 @@
 
 {
     'name': 'CalDAV Synchronization',
-    'version': '17.0.0.5.2',
+    'version': '17.0.0.5.3',
     'license': 'LGPL-3',
     'category': 'Productivity',
     'summary': 'Synchronize Odoo Calendar Events with CalDAV Servers',
@@ -20,6 +20,9 @@
     'author': 'Bemade Inc.',
     'website': 'https://www.bemade.org',
     'depends': ['base', 'calendar'],
+    'external_dependencies': {
+        'python': ['caldav', 'icalendar', 'bs4'],
+    },
     'images': ['static/description/images/main_screenshot.png'],
     'data': [
         'views/res_users_views.xml',
