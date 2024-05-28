@@ -7,10 +7,14 @@
         <field name="arch" type="xml">
             <field name="delivery_package_type_id" position="replace">
                 <field invisible="1" name="auto_create_package"/>
-                <field context="{'form_view_ref':'stock.stock_package_type_form'}" domain="[('package_carrier_type', '=', context.get('current_package_carrier_type', 'none'))]" invisible="auto_create_package == True" name="delivery_package_type_id"/>
+                <field context="{'form_view_ref':'stock.stock_package_type_form'}"
+                       domain="[('package_carrier_type', '=', context.get('current_package_carrier_type', 'none'))]"
+                       invisible="auto_create_package == True" name="delivery_package_type_id"/>
                 <field invisible="auto_create_package == False" name="length"/>
                 <field invisible="auto_create_package == False" name="width"/>
                 <field invisible="auto_create_package == False" name="height"/>
-                <field invisible="1" name="provider"/></field></field>
+                <field invisible="1" name="provider"/>
+            </field>
+        </field>
     </record>
 </odoo>
