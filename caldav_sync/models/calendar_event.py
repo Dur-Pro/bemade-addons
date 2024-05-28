@@ -148,8 +148,8 @@ class CalendarEvent(models.Model):
             ical_event.add('dtstamp', event.write_date.replace(tzinfo=None))
             if event.name:
                 ical_event.add('summary', event.name)
-            if event.description:
-                ical_event.add('description', event.description)
+            if self.html_to_text(event.description):
+                ical_event.add('description', self.html_to_text(event.description))
             if event.location:
                 ical_event.add('location', event.location)
             if event.videocall_location:
@@ -312,13 +312,14 @@ class CalendarEvent(models.Model):
                 end = component.decoded('dtend')
                 if isinstance(end, datetime):
                     end = end.replace(tzinfo=None)
+
                 values = {
                     'name': str(component.get('summary')),
                     'start': start,
                     'stop': end,
-                    'description': str(component.get('description')),
-                    'location': str(component.get('location')),
-                    'videocall_location': str(component.get('conference')),
+                    'description': self._extract_component_text(component, 'description'),
+                    'location': self._extract_component_text(component, 'location'),
+                    'videocall_location': self._extract_component_text(component, 'conference'),
                     'caldav_uid': uid,
                     'partner_ids': [(6, 0, attendee_ids.ids)],
                 }
@@ -336,6 +337,10 @@ class CalendarEvent(models.Model):
                             'follow_recurrence': True,
                         })
                     existing_instance.with_context({'caldav_no_sync': True}).write(values)
+    @staticmethod
+    def _extract_component_text(component, subcomponent_name):
+        text = str(component.get(subcomponent_name))
+        text = text if text != 'None' else ''
 
 
     @staticmethod
