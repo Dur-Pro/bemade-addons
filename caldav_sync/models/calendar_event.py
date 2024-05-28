@@ -172,8 +172,8 @@ class CalendarEvent(models.Model):
                 ical_event.add('rrule', rrule_dict)
 
             # Add DTSTART and DTEND
-            ical_event.add('dtstart', event.start)
-            ical_event.add('dtend', event.stop)
+            ical_event.add('dtstart', event.start.astimezone(user_tz))
+            ical_event.add('dtend', event.stop.astimezone(user_tz))
 
             calendar.add_component(ical_event)
 
