@@ -2,7 +2,7 @@ from . import models
 
 
 def post_init(env):
-    env.['account.report'].search([('name', 'ilike', 'aged_%_report_na')]).unlink()
+    env['account.report'].search([('name', 'ilike', 'aged_%_report_na')]).unlink()
     new_receivable_report =  env.ref('account_reports.aged_receivable_report').copy()
     new_payable_report = env.ref('account_reports.aged_payable_report').copy()
     new_receivable_report.line_ids.mapped('expression_ids').write({
