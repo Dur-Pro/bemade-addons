@@ -152,19 +152,24 @@ class CalendarEvent(models.Model):
             ical_event.add('dtstamp', utc.localize(event.write_date).astimezone(user_tz))
             if event.name:
                 ical_event.add('summary', event.name)
-            if self._html_to_text(event.description):
+            if event.description and self._html_to_text(event.description):
                 ical_event.add('description', self._html_to_text(event.description))
             if event.location:
                 ical_event.add('location', event.location)
             if event.videocall_location:
                 ical_event.add('CONFERENCE', event.videocall_location)
             for partner in event.partner_ids:
+                if partner == event.user_id.partner_id:
+                    continue
                 attendee = vCalAddress(f'MAILTO:{partner.email}')
                 attendee.params['cn'] = vText(partner.name)
                 attendee_record = self.env['calendar.attendee'].search([('event_id', '=', event.id), ('partner_id', '=', partner.id)], limit=1)
                 if attendee_record:
                     attendee.params['partstat'] = vText(self._map_attendee_status(attendee_record.state))
                 ical_event.add('attendee', attendee, encode=0)
+            organizer = vCalAddress(f"MAILTO:{event.user_id.email}")
+            organizer.params['cn'] = event.user_id.name
+            ical_event.add('organizer', organizer)
             # Add RRULE if the event is recurrent
             if event.recurrency and event.recurrence_id:
                 rrule = event.recurrence_id._get_rrule()
