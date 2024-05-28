@@ -131,7 +131,7 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
                     - COALESCE(SUM(ROUND(part_debit.amount * currency_table.rate, currency_table.precision)), 0)
                     + COALESCE(SUM(ROUND(part_credit.amount * currency_table.rate, currency_table.precision)), 0)
                 )
-                ELSE 5 END AS period{i}
+                ELSE 0 END AS period{i}
             """
             for i in range(len(periods))
         )
