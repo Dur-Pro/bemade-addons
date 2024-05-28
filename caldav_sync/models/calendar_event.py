@@ -152,8 +152,8 @@ class CalendarEvent(models.Model):
             ical_event.add('dtstamp', event.write_date.astimezone(user_tz))
             if event.name:
                 ical_event.add('summary', event.name)
-            if self.html_to_text(event.description):
-                ical_event.add('description', self.html_to_text(event.description))
+            if self._html_to_text(event.description):
+                ical_event.add('description', self._html_to_text(event.description))
             if event.location:
                 ical_event.add('location', event.location)
             if event.videocall_location:
