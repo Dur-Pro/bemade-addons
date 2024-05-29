@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from icalendar import Calendar, Event, vCalAddress, vText, vWeekday
 from bs4 import BeautifulSoup
 from datetime import timedelta
-import dateutil
 import re
 from pytz import timezone, utc
 
@@ -320,7 +319,6 @@ class CalendarEvent(models.Model):
                 end = component.decoded('dtend')
                 if isinstance(end, datetime):
                     end = end.astimezone(utc).replace(tzinfo=None)
-
                 values = {
                     'name': str(component.get('summary')),
                     'start': start,
@@ -339,12 +337,27 @@ class CalendarEvent(models.Model):
                     self.with_context({'caldav_no_sync': True}).create(values)
                 else:
                     _logger.info(f"Updating with vals: {values}")
-                    if recurrency_vals and recurrency_vals.get('recurrency'):
+                    changed_vals = {}
+                    # Don't update partner_ids if no change
+                    if attendee_ids - existing_instance.partner_ids:
+                        changed_vals.update({
+                            'partner_ids',values.pop('partner_ids'),
+                        })
+
+                    # Don't write values that haven't changed
+                    for key, val in values.items():
+                        if getattr(existing_instance, key) != val:
+                            changed_vals.update({key: values.pop(key)})
+                    if (recurrency_vals and recurrency_vals.get('recurrency')
+                            and (not existing_instance.recurrency or not
+                            existing_instance.follow_recurrence)):
                         existing_instance.write({
                             'recurrency': True,
                             'follow_recurrence': True,
                         })
-                    existing_instance.with_context({'caldav_no_sync': True}).write(values)
+                    existing_instance.with_context({
+                        'caldav_no_sync': True,
+                    }).write(changed_vals)
 
     @staticmethod
     def _extract_component_text(component, subcomponent_name):
