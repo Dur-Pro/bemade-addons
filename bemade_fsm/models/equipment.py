@@ -38,6 +38,8 @@ class Equipment(models.Model):
         string='Interventions'
     )
 
+    active = fields.Boolean(default=True)
+
     @api.depends('partner_location_id')
     def _compute_partner(self):
         for rec in self:
