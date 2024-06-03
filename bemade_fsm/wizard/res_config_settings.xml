@@ -7,14 +7,16 @@
         <field name="arch" type="xml">
             <setting name="module_industry_fsm_report" position="after">
                 <setting
-                        name="module_bemade_fsm_separate_time_on_work_orders"
-                        help="Separate blocks for materials and time on work order reports.">
-                    <field name="module_bemade_fsm_separate_time_on_work_orders"/>
+                        name="separate_time_on_work_orders"
+                        help="Separate blocks for materials and time on work order reports."
+                        company_dependent="1">
+                    <field name="separate_time_on_work_orders"/>
                 </setting>
                 <setting
-                        name="module_bemade_fsm_create_default_fsm_visit"
-                        help="Create a default FSM visit if a service SO doesn't already contain one at confirmation.">
-                    <field name="module_bemade_fsm_create_default_fsm_visit"/>
+                        name="create_default_fsm_visit"
+                        help="Create a default FSM visit if a service SO doesn't already contain one at confirmation."
+                        company_dependent="1">
+                    <field name="create_default_fsm_visit"/>
                 </setting>
             </setting>
         </field>

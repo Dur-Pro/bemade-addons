@@ -5,10 +5,10 @@ from odoo.tests import Form
 class TestTaskReport(BemadeFSMBaseTest):
     def test_split_time_materials_setting(self):
         with Form(self.env['res.config.settings']) as settings:
-            settings.module_bemade_fsm_separate_time_on_work_orders = True
+            settings.separate_time_on_work_orders = True
 
         with Form(self.env['res.config.settings']) as new_settings:
-            self.assertTrue(settings.module_bemade_fsm_separate_time_on_work_orders)
+            self.assertTrue(settings.separate_time_on_work_orders)
 
         so = self._generate_sale_order()
         service_product = self._generate_product()
