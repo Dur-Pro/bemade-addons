@@ -146,7 +146,8 @@
             <field name="domain">[('is_fsm', '=', True),
                                   ('project_id', '!=', False),
                                   ('display_in_project', '=', True),
-                                  ('parent_id', '=', False)]
+                                  ('parent_id', '=', False),
+                                  ('invoice_status', '=', 'to invoice')]
             </field>
         </record>
         <!-- Add parent_id = false to domain for planning actions as well -->

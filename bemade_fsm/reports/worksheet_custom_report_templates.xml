@@ -248,7 +248,7 @@
                                         </td>
                                         <td t-out="task.description or ''"/>
                                     </tr>
-                                    <tr class="mt-0 pt-0">
+                                    <tr t-if="task.child_ids" class="mt-0 pt-0">
                                         <td/>
                                         <td>
                                             <t t-call="bemade_fsm.subtask_list"/>
