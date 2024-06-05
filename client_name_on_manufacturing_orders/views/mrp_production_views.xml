@@ -16,7 +16,7 @@
         <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
         <field name="arch" type="xml">
             <field name="name" position="after">
-                <field name="customer_ids" optional="show"/>
+                <field name="customer_ids" optional="show" widget="many2many_tags"/>
             </field>
         </field>
     </record>
