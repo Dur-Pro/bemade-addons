@@ -53,6 +53,9 @@ class Partner(models.Model):
         tracking=True
     )
 
+    is_service_site = fields.Boolean(
+        compute="_compute_is_service_site",
+    )
     @api.depends(
         'equipment_ids',
         'child_ids.company_type',
@@ -60,8 +63,7 @@ class Partner(models.Model):
     )
     def _compute_owned_equipment_ids(self):
         for rec in self:
-            ids = rec.equipment_ids | rec.child_ids.filtered(
-                lambda l: l.company_type == 'company').mapped('equipment_ids')
+            ids = rec.equipment_ids | rec.child_ids.mapped('equipment_ids')
             rec.owned_equipment_ids = ids or False
 
     @api.depends('site_ids')
@@ -79,3 +81,7 @@ class Partner(models.Model):
     @api.model
     def _search_is_site_contact(self, operator, value):
         return [('site_contacts', '!=', False)]
+
+    def _compute_is_service_site(self):
+        for rec in self:
+            rec.is_service_site = bool(rec.equipment_ids)
