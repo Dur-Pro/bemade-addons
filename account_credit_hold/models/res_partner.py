@@ -5,15 +5,20 @@ from datetime import date
 class Partner(models.Model):
     _inherit = 'res.partner'
 
-    postpone_hold_until = fields.Date(string="Postpone Hold",
-                                      help="Grace period specific to this partner despite unpaid invoices.", )
+    postpone_hold_until = fields.Date(
+        string="Postpone Hold",
+        help="Grace period specific to this partner despite unpaid invoices.",
+        tracking=True,
+    )
 
-    hold_bg = fields.Boolean(string="Hold (technical)",
-                             compute="_compute_hold_bg",
-                             store=True,
-                             default=False,
-                             compute_sudo=True,
-                             )
+    hold_bg = fields.Boolean(
+        string="Hold (technical)",
+        compute="_compute_hold_bg",
+        store=True,
+        default=False,
+        compute_sudo=True,
+        tracking=True,
+    )
     on_hold = fields.Boolean(string="Account on Hold",
                              help="Client account is on hold for unpaid overdue invoices.",
                              compute="_compute_on_hold",
@@ -31,7 +36,8 @@ class Partner(models.Model):
                 rec.on_hold = True
                 return
             # If there is no parent company or the parent is not on hold, we compute for ourselves
-            if rec.hold_bg and not (rec.postpone_hold_until and rec.postpone_hold_until > date.today()):
+            if rec.hold_bg and not (
+                    rec.postpone_hold_until and rec.postpone_hold_until > date.today()):
                 rec.on_hold = True
             else:
                 if rec.on_hold:
@@ -40,7 +46,8 @@ class Partner(models.Model):
 
     @api.autovacuum
     def _cleanup_expired_hold_postponements(self):
-        expired_holds = self.search([('postpone_hold_until', '<=', date.today())])
+        expired_holds = self.search(
+            [('postpone_hold_until', '<=', date.today())])
         expired_holds.write({'postpone_hold_until': False})
 
     def action_credit_hold(self):

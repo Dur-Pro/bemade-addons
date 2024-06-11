@@ -9,7 +9,7 @@ class MrpProduction(models.Model):
         self.ensure_one()
         if self.state != 'cancel':
             raise UserError(_(
-                'Only manufacturing orders in confirmed '
+                'Only manufacturing orders in canceled'
                 'state can be set back to draft.'
             ))
         self.state = False
