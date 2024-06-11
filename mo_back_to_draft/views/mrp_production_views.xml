@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <record id="mrp_production_view_form_inherit" model="ir.ui.view">
+        <field name="name">mrp.production.view.form.inherit</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="model">mrp.production</field>
+        <field name="arch" type="xml">
+            <header position="inside">
+                <button name="action_back_to_draft"
+                        invisible="state != 'cancel'"
+                        type="object"
+                        string="Back to Draft"/>
+            </header>
+        </field>
+    </record>
+</odoo>
