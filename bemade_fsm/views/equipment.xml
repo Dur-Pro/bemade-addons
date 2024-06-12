@@ -1,32 +1,38 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <odoo>
     <!-- Equipment Form View -->
     <record id="equipment_view_form" model="ir.ui.view">
         <field name="name">bemade_fsm.equipment.form</field>
         <field name="model">bemade_fsm.equipment</field>
         <field name="arch" type="xml">
-            <form string="Equipment">
+            <form>
                 <sheet>
                     <group>
                         <group name="left">
-                            <field name="pid_tag"/>
-                            <field name="name"/>
-                            <field name="description"/>
-                            <field name="location_notes"/>
+                            <field name="pid_tag" />
+                            <field name="name" />
+                            <field name="description" />
+                            <field name="location_notes" />
                         </group>
                         <group name="right">
-                            <field name="partner_location_id"
-                                   groups="account.group_delivery_invoice_address"
-                                   context="{'default_type': 'delivery', 'show_address': 1}"
-                                   options='{"always_reload": True}'/>
-                            <field name="tag_ids" widget="many2many_tags" options="{'no_open': False}"/>
+                            <field
+                name="partner_location_id"
+                groups="account.group_delivery_invoice_address"
+                context="{'default_type': 'delivery', 'show_address': 1}"
+                options='{"always_reload": True}'
+              />
+                            <field
+                name="tag_ids"
+                widget="many2many_tags"
+                options="{'no_open': False}"
+              />
                         </group>
                     </group>
                 </sheet>
                 <div class="oe_chatter">
-                    <field name="message_follower_ids" widget="mail_followers"/>
-                    <field name="activity_ids" widget="mail_activity"/>
-                    <field name="message_ids" widget="mail_thread"/>
+                    <field name="message_follower_ids" widget="mail_followers" />
+                    <field name="activity_ids" widget="mail_activity" />
+                    <field name="message_ids" widget="mail_thread" />
                 </div>
             </form>
         </field>
@@ -36,12 +42,16 @@
         <field name="name">bemade_fsm.equipment.tree</field>
         <field name="model">bemade_fsm.equipment</field>
         <field name="arch" type="xml">
-            <tree string="Equipment" editable="bottom">
-                <field name="pid_tag"/>
-                <field name="name"/>
-                <field name="description"/>
-                <field name="tag_ids" widget="many2many_tags" options="{'no_open': False}"/>
-                <field name="partner_location_id"/>
+            <tree editable="bottom">
+                <field name="pid_tag" />
+                <field name="name" />
+                <field name="description" />
+                <field
+          name="tag_ids"
+          widget="many2many_tags"
+          options="{'no_open': False}"
+        />
+                <field name="partner_location_id" />
             </tree>
         </field>
     </record>

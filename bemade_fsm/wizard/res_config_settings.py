@@ -1,11 +1,11 @@
-from odoo import models, fields, api
+from odoo import models, fields
 
 
 class ResConfigSettings(models.TransientModel):
     _inherit = "res.config.settings"
 
     company_id = fields.Many2one(
-        'res.company',
+        "res.company",
         default=lambda self: self.env.company or self.env.user.company_id,
     )
     separate_time_on_work_orders = fields.Boolean(

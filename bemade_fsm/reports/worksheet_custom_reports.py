@@ -6,6 +6,8 @@ class TaskCustomReport(models.AbstractModel):
 
     def _get_report_values(self, docids, data=None):
         vals = super()._get_report_values(docids, data)
-        split_time_materials = self.env.company.split_time_from_materials_on_service_work_orders
+        split_time_materials = (
+            self.env.company.split_time_from_materials_on_service_work_orders
+        )
         vals.update({"split_time_materials": split_time_materials})
         return vals

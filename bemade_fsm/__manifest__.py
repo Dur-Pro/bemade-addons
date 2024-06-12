@@ -19,53 +19,52 @@
 #
 ########################################################################################
 {
-    'name': 'Improved Field Service Management',
-    'version': '17.0.0.3.0',
-    'summary': 'Adds functionality necessary for managing field service operations at Durpro.',
-    'description': 'Adds functionality necessary for managing field service operations at Durpro.',
-    'category': 'Services/Field Service',
-    'author': 'Bemade Inc.',
-    'website': 'http://www.bemade.org',
-    'license': 'OPL-1',
-    'depends': [
-        'sale_stock',
-        'sale_project',
-        'account',
-        'project_enterprise',
-        'industry_fsm_stock',
-        'industry_fsm_report',
-        'industry_fsm_sale_report',
-        'bemade_partner_root_ancestor',
-        'mail',
+    "name": "Improved Field Service Management",
+    "version": "17.0.0.3.0",
+    "summary": (
+        "Adds functionality necessary for managing field service operations at Durpro."
+    ),
+    "category": "Services/Field Service",
+    "author": "Bemade Inc.",
+    "website": "http://www.bemade.org",
+    "license": "LGPL-3",
+    "depends": [
+        "sale_stock",
+        "sale_project",
+        "account",
+        "project_enterprise",
+        "industry_fsm_stock",
+        "industry_fsm_report",
+        "industry_fsm_sale_report",
+        "bemade_partner_root_ancestor",
+        "mail",
     ],
-    'data': [
-        'data/fsm_data.xml',
-        'views/task_template_views.xml',
-        'views/equipment.xml',
-        'security/ir.model.access.csv',
-        'views/product_views.xml',
-        'views/res_partner.xml',
-        'views/menus.xml',
-        'views/task_views.xml',
-        'views/sale_order_views.xml',
-        'reports/worksheet_custom_report_templates.xml',
-        'reports/worksheet_custom_reports.xml',
-        'wizard/new_task_from_template.xml',
-        'wizard/res_config_settings.xml',
+    "data": [
+        "data/fsm_data.xml",
+        "views/task_template_views.xml",
+        "views/equipment.xml",
+        "security/ir.model.access.csv",
+        "views/product_views.xml",
+        "views/res_partner.xml",
+        "views/menus.xml",
+        "views/task_views.xml",
+        "views/sale_order_views.xml",
+        "reports/worksheet_custom_report_templates.xml",
+        "reports/worksheet_custom_reports.xml",
+        "wizard/new_task_from_template.xml",
+        "wizard/res_config_settings.xml",
     ],
-    'assets': {
-        'web.report_assets_common': [
-            'bemade_fsm/static/src/scss/bemade_fsm.scss'
-        ],
-        'web.assets_backend': [
+    "assets": {
+        "web.report_assets_common": ["bemade_fsm/static/src/scss/bemade_fsm.scss"],
+        "web.assets_backend": [
             #  BV: need to readd these files
             # 'bemade_fsm/static/src/js/kanban_view.js',
             # 'bemade_fsm/static/src/js/list_view.js',
         ],
-        'web.assets_qweb': [
-            'bemade_fsm/static/src/xml/project_view_buttons.xml',
-        ]
+        "web.assets_qweb": [
+            "bemade_fsm/static/src/xml/project_view_buttons.xml",
+        ],
     },
-    'installable': True,
-    'auto_install': False
+    "installable": True,
+    "auto_install": False,
 }

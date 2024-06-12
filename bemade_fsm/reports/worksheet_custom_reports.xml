@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <data>
-        <record id="industry_fsm_report.task_custom_report" model="ir.actions.report">
-            <field name="print_report_name">'%s %s' % (
-                object.planned_date_begin.strftime('%Y-%m-%d') if object.planned_date_begin else time.strftime('%Y-%m-%d'),
-                object.name
-            )
-            </field>
-        </record>
-    </data>
+    <record id="industry_fsm_report.task_custom_report" model="ir.actions.report">
+        <field name="print_report_name">'%s %s' % (
+            object.planned_date_begin.strftime(
+                '%Y-%m-%d') if object.planned_date_begin else time.strftime('%Y-%m-%d'),
+            object.name
+        )
+        </field>
+    </record>
 </odoo>

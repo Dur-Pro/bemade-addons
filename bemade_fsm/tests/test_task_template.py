@@ -1,35 +1,34 @@
 from .test_bemade_fsm_common import BemadeFSMBaseTest
-from odoo.tests.common import HttpCase, tagged, Form
+from odoo.tests.common import tagged, Form
 from odoo.exceptions import MissingError
-from odoo import Command
 from odoo.tools import mute_logger
-from psycopg2.errors import ForeignKeyViolation
+import psycopg2
 
 
-@tagged('-at_install', 'post_install')
+@tagged("-at_install", "post_install")
 class TestTaskTemplate(BemadeFSMBaseTest):
-
     def test_delete_task_template(self):
         """User should never be able to delete a task template used on a product"""
-        task_template = self._generate_task_template(names=['Template 1'])
-        product = self._generate_product(name="Test Product 1", task_template=task_template)
-        with self.assertRaises(ForeignKeyViolation):
-            with mute_logger('odoo.sql_db'):
+        task_template = self._generate_task_template(names=["Template 1"])
+        self._generate_product(name="Test Product 1", task_template=task_template)
+        with self.assertRaises(psycopg2.errors.ForeignKeyViolation):
+            with mute_logger("odoo.sql_db"):
                 task_template.unlink()
 
     def test_delete_subtask_template(self):
-        """ Deletion of a child task should be OK even if the parent is on a product. Children of the deleted
-        subtask should be deleted."""
-        parent_task = self._generate_task_template(structure=[2, 1],
-                                                   names=['Parent Template', 'Child Template',
-                                                          'Grandchild Template'])
+        """Deletion of a child task should be OK even if the parent is on a product.
+        Children of the deleted subtask should be deleted."""
+        parent_task = self._generate_task_template(
+            structure=[2, 1],
+            names=["Parent Template", "Child Template", "Grandchild Template"],
+        )
         grandchild_task = parent_task.subtasks[0].subtasks[0]
 
         parent_task.subtasks[0].unlink()
 
         # Reading deleted child's name field should be impossible
         with self.assertRaises(MissingError):
-            test = grandchild_task.name
+            _ = grandchild_task.name
 
     def test_dissociating_customer_resets_equipment_appropriately(self):
         partner1 = self._generate_partner()
@@ -38,7 +37,8 @@ class TestTaskTemplate(BemadeFSMBaseTest):
         task = self._generate_task_template(customer=partner1, equipment=equipment1)
         form = Form(task)
 
-        # Switching the partner should trigger on_change that makes sure equipments are linked to the new partner
+        # Switching the partner should trigger on_change that makes sure equipments are
+        # linked to the new partner
         form.customer = partner2
         form.save()
 
@@ -46,7 +46,7 @@ class TestTaskTemplate(BemadeFSMBaseTest):
 
     def test_child_task_names_are_short_version(self):
         so, visit, sol1, sol2 = self._generate_so_with_one_visit_two_lines()
-        template = self._generate_task_template(names=['Task'])
+        template = self._generate_task_template(names=["Task"])
         product = self._generate_product(task_template=template)
         sol1.name = "Short Name 1"
         sol2.name = "Short Name 2"
@@ -60,14 +60,21 @@ class TestTaskTemplate(BemadeFSMBaseTest):
 
     def test_task_creation_directly_from_template(self):
         project = self.env.ref("industry_fsm.fsm_project")
-        template = self._generate_task_template(names=['Task', 'Child', 'Grandchild'], structure=[2, 1])
+        template = self._generate_task_template(
+            names=["Task", "Child", "Grandchild"], structure=[2, 1]
+        )
 
         task = template.create_task_from_self(project, "My new task")
 
         self.assertEqual(len(task.child_ids), len(template.subtasks))
-        self.assertEqual(len(task.child_ids[0].child_ids), len(template.subtasks[0].subtasks))
-        self.assertEqual(len(task.child_ids[1].child_ids), len(template.subtasks[1].subtasks))
+        self.assertEqual(
+            len(task.child_ids[0].child_ids), len(template.subtasks[0].subtasks)
+        )
+        self.assertEqual(
+            len(task.child_ids[1].child_ids), len(template.subtasks[1].subtasks)
+        )
         self.assertEqual(task.name, "My new task")
         self.assertEqual(task.child_ids[0].name, template.subtasks[0].name)
-        self.assertTrue(all([t.project_id == project for t in task | task._get_all_subtasks()]))
-
+        self.assertTrue(
+            all([t.project_id == project for t in task | task._get_all_subtasks()])
+        )
